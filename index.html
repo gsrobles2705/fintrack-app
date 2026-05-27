@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" 
+        content="width=device-width, initial-scale=1.0">
+  <title>FinTrack</title>
+
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
+
+  <!-- Tus estilos, en este orden -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/toast.css">
+
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#131313">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FinTrack">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+
+<body>
+
+  <!-- PANTALLA 1: Splash -->
+  <div id="screen-splash" class="screen active">
+    <div class="splash-content">
+      <h1 class="splash-logo">FinTrack</h1>
+    </div>
+    <div class="splash-footer">
+      © 2026 FinTrack.<br>
+      Todos los derechos reservados. / Versión 1.1.0<br>
+      FinTrack no es una entidad bancaria.
+    </div>
+  </div>
+
+  <!-- PANTALLA 2: Onboarding -->
+  <div id="screen-onboarding" class="screen">
+    <div class="onboarding-content">
+
+      <p class="onboarding-logo">FinTrack</p>
+
+      <h2 class="onboarding-title">¡Bienvenido a FinTrack!</h2>
+      <p class="onboarding-subtitle">Configura tu cuenta en segundos.</p>
+
+      <!-- Nombre -->
+      <input
+        type="text"
+        id="input-nombre"
+        class="input-field"
+        placeholder="Tu nombre"
+        maxlength="20"
+      >
+      <div id="error-onb-nombre" class="input-error-msg" style="margin-bottom: var(--spacing-md)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M12 9v4"/>
+          <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0"/>
+          <path d="M12 16h.01"/>
+        </svg>
+        <span>Por favor ingresa tu nombre para continuar</span>
+      </div>
+
+      <!-- País (combobox) -->
+      <div id="onb-combo-wrapper" class="combo-wrapper">
+        <div class="combo-input-row">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>
+            <path d="M3.6 9h16.8"/><path d="M3.6 15h16.8"/>
+            <path d="M11.5 3a17 17 0 0 0 0 18"/>
+            <path d="M12.5 3a17 17 0 0 1 0 18"/>
+          </svg>
+          <input
+            type="text"
+            id="onb-combo-input"
+            class="input-field combo-input"
+            placeholder="País de residencia"
+            autocomplete="off"
+          >
+          <svg class="combo-chevron" xmlns="http://www.w3.org/2000/svg"
+              width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M6 9l6 6l6 -6"/>
+          </svg>
+        </div>
+        <div id="onb-combo-dropdown" class="combo-dropdown" style="display:none"></div>
+      </div>
+
+      <!-- Moneda (custom dropdown, mismo componente que Perfil) -->
+      <div id="onb-moneda-wrapper" class="combo-wrapper" style="margin-bottom: var(--spacing-lg)">
+        <div class="combo-input-row" onclick="_toggleMonedaOnbDropdown()" style="cursor:pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3"/>
+            <path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12
+                    a1 1 0 0 1 -1 -1l0 -8"/>
+            <path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
+          </svg>
+          <input
+            type="text"
+            id="onb-moneda-display"
+            class="input-field combo-input"
+            placeholder="Seleccionar moneda"
+            readonly
+            style="cursor:pointer"
+          >
+          <svg class="combo-chevron" xmlns="http://www.w3.org/2000/svg"
+              width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M6 9l6 6l6 -6"/>
+          </svg>
+        </div>
+        <div id="onb-moneda-dropdown" class="combo-dropdown" style="display:none"></div>
+      </div>
+
+      <!-- Capital inicial -->
+      <p class="onboarding-capital-label">¿Cuánto tienes actualmente?</p>
+      <input
+        type="number"
+        id="input-capital-inicial"
+        class="input-field"
+        placeholder="0.00 (opcional)"
+        min="0"
+        step="0.01"
+        oninput="validarCapitalInicial(this.value)"
+      >
+      <div id="error-capital-inicial" class="input-error-msg">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M12 9v4"/>
+          <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0"/>
+          <path d="M12 16h.01"/>
+        </svg>
+        <span>El capital no puede ser negativo</span>
+      </div>
+
+      <button class="btn-primary" onclick="guardarUsuario()" style="margin-top: var(--spacing-lg);">
+        Empezar ahora →
+      </button>
+
+    </div>
+  </div>
+
+  <!-- PANTALLA 3: Home -->
+  <div id="screen-home" class="screen">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-avatar" onclick="navigate(SCREENS.PERFIL)">
+        <span id="home-avatar-inicial"></span>
+      </div>
+      <span class="header-logo">FinTrack</span>
+      <div class="header-icon" onclick="navigate(SCREENS.NOTIFICACIONES)">
+      </div>
+    </div>
+
+    <!-- CONTENIDO CON SCROLL -->
+    <div class="screen-content">
+
+      <!-- SALUDO -->
+      <div class="home-greeting">
+        <p class="greeting-label">PANEL PRINCIPAL</p>
+        <h1 class="greeting-name" id="home-greeting-name">
+          Buen día, Gabriel
+        </h1>
+      </div>
+
+      <!-- BALANCE SEMANAL -->
+      <div class="card">
+        <p class="card-label">SALDO ACTUAL</p>
+        <h2 class="balance-amount" id="home-balance">S/ 0.00</h2>
+      </div>
+
+      <!-- OBJETIVO SEMANAL -->
+      <div class="card">
+        <div class="goal-header">
+          <p class="card-label">OBJETIVO SEMANAL</p>
+          <span class="goal-amounts" id="home-goal-amounts">
+            S/0 / S/0
+          </span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" 
+              id="home-progress-bar" 
+              style="width: 0%">
+          </div>
+        </div>
+        <button class="btn-secondary" 
+                onclick="mostrarModalObjetivo()">
+          + Agregar objetivo semanal
+        </button>
+      </div>
+
+      <!-- PRESUPUESTO DIARIO -->
+      <div class="card presupuesto-card" id="presupuesto-card">
+        <div class="presupuesto-header">
+          <div>
+            <p class="card-label">PRESUPUESTO DIARIO</p>
+            <p class="presupuesto-monto" id="presupuesto-restante">
+              S/ 0.00 restantes
+            </p>
+          </div>
+          <div class="presupuesto-bolt" id="presupuesto-bolt-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg>
+          </div>
+        </div>
+        <button class="btn-secondary" 
+                onclick="mostrarModalPresupuesto()">
+          + Configurar presupuesto diario
+        </button>
+      </div>
+
+      <!-- ACTIVIDAD RECIENTE -->
+      <div class="section-header">
+        <p class="section-title">Actividad Reciente</p>
+        <span class="section-link" 
+              onclick="navigate(SCREENS.ACTIVIDAD)">
+          VER TODO
+        </span>
+      </div>
+
+      <div id="home-transactions-list">
+        <!-- Se llena con JavaScript -->
+      </div>
+
+    </div>
+
+    <!-- NAV INFERIOR -->
+    <nav class="bottom-nav">
+      <div class="nav-item active" onclick="navigate(SCREENS.HOME)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
+        </span>
+        <span class="nav-label">Inicio</span>
+      </div>
+      <div class="nav-item" onclick="navigate(SCREENS.REGISTRO)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg>
+        </span>
+        <span class="nav-label">Registro</span>
+      </div>
+      <div class="nav-item" onclick="navigate(SCREENS.DEUDAS)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3"/><path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8"/><path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/></svg>
+        </span>
+        <span class="nav-label">Deudas</span>
+      </div>
+      <div class="nav-item" onclick="navigate(SCREENS.ACTIVIDAD)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        </span>
+        <span class="nav-label">Actividad</span>
+      </div>
+    </nav>
+
+    <!-- MODAL OBJETIVO -->
+    <div class="modal-overlay" id="modal-objetivo" style="display:none">
+      <div class="modal-card">
+        <h3 class="modal-title">Objetivo semanal</h3>
+        <p class="modal-subtitle">¿Cuánto quieres ahorrar esta semana?</p>
+        <input 
+          type="number" 
+          id="input-objetivo"
+          class="input-field" 
+          placeholder="S/ 50"
+          min="1"
+          oninput="validarInputObjetivo(this.value)"
+        >
+        <div id="error-objetivo" class="modal-error" style="display:none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"/><path d="M12 16h.01"/></svg>
+          Ingresa un monto mayor a 0
+        </div>
+        <button class="btn-primary" id="btn-guardar-objetivo"
+                onclick="guardarObjetivo()" disabled>
+          Guardar
+        </button>
+        <button class="btn-ghost" onclick="cerrarModalObjetivo()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL PRESUPUESTO -->
+    <div class="modal-overlay" id="modal-presupuesto" style="display:none"
+        onclick="if(event.target===this)cerrarModalPresupuesto()">
+      <div class="modal-card">
+        <h3 class="modal-title">Presupuesto diario</h3>
+        <p class="modal-subtitle">¿Cuánto puedes gastar por día?</p>
+        <input
+          type="number"
+          id="input-presupuesto"
+          class="input-field"
+          placeholder="S/ 30"
+          min="1"
+          oninput="validarInputPresupuesto(this.value)"
+        >
+        <div id="error-presupuesto" class="modal-error" style="display:none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"/><path d="M12 16h.01"/></svg>
+          Ingresa un monto mayor a 0
+        </div>
+        <button class="btn-primary" id="btn-guardar-presupuesto"
+                onclick="guardarPresupuesto()" disabled>
+          Guardar
+        </button>
+        <button class="btn-ghost" onclick="cerrarModalPresupuesto()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PANTALLA 4: Registro -->
+  <div id="screen-registro" class="screen">
+
+    <!-- HEADER --> 
+    <div class="header">
+      <div class="header-avatar" onclick="navigate(SCREENS.PERFIL)">
+        <span id="registro-avatar-inicial"></span>
+      </div>
+      <span class="header-logo">FinTrack</span>
+      <div class="header-icon" onclick="navigate(SCREENS.NOTIFICACIONES)">
+      </div>
+    </div>
+    
+    <div class="screen-content">
+
+      <!-- TOGGLE GASTO / INGRESO -->
+      <div class="toggle-container">
+        <button class="toggle-btn active" 
+                id="btn-gasto"
+                onclick="setTipoRegistro('gasto')">
+          Gasto
+        </button>
+        <button class="toggle-btn" 
+                id="btn-ingreso"
+                onclick="setTipoRegistro('ingreso')">
+          Ingreso
+        </button>
+      </div>
+
+      <!-- MONTOS SUGERIDOS -->
+      <p class="registro-label">MONTO SUGERIDO</p>
+      <div class="montos-grid">
+        <button class="monto-btn" 
+                onclick="seleccionarMonto(2)">S/2</button>
+        <button class="monto-btn" 
+                onclick="seleccionarMonto(5)">S/5</button>
+        <button class="monto-btn" 
+                onclick="seleccionarMonto(10)">S/10</button>
+        <button class="monto-btn" 
+                onclick="seleccionarMonto(20)">S/20</button>
+        <button class="monto-btn" 
+                onclick="seleccionarMonto(50)">S/50</button>
+        <button class="monto-btn" 
+                onclick="seleccionarMonto(25)">S/25</button>
+      </div>
+
+      <!-- MONTO PERSONALIZADO -->
+      <div class="monto-custom-container">
+        <div class="monto-custom-wrapper">
+          <input 
+            type="number" 
+            id="input-monto-custom"
+            class="input-field monto-custom-input"
+            placeholder="Ingresar monto personalizado"
+            min="0.01"
+            step="0.01"
+            oninput="seleccionarMontoCustom(this.value)"
+          >
+          <span class="monto-custom-arrow" id="monto-custom-arrow">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 12l-10 0"/><path d="M14 12l-4 4"/><path d="M14 12l-4 -4"/><path d="M20 4l0 16"/></svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- MONTO SELECCIONADO -->
+      <div class="monto-seleccionado-display" 
+          id="monto-display">
+        S/ 0.00
+      </div>
+
+      <!-- CATEGORÍAS -->
+      <p class="registro-label">CATEGORÍA</p>
+      <div class="categorias-grid" id="categorias-container">
+        <!-- Se llena con JS según tipo -->
+      </div>
+
+      <!-- PRESUPUESTO DIARIO -->
+      <div class="presupuesto-info" id="presupuesto-info">
+        Calculando presupuesto...
+      </div>
+
+      <!-- BOTÓN CONFIRMAR -->
+      <button class="btn-primary btn-confirmar" 
+              id="btn-confirmar"
+              onclick="confirmarRegistro()">
+        Confirmar Gasto
+      </button>
+
+    </div>
+
+    <!-- NAV INFERIOR -->
+    <nav class="bottom-nav">
+      <div class="nav-item" onclick="navigate(SCREENS.HOME)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
+        </span>
+        <span class="nav-label">Inicio</span>
+      </div>
+      <div class="nav-item active" onclick="navigate(SCREENS.REGISTRO)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg>
+        </span>
+        <span class="nav-label">Registro</span>
+      </div>
+      <div class="nav-item" onclick="navigate(SCREENS.DEUDAS)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3"/><path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8"/><path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/></svg>
+        </span>
+        <span class="nav-label">Deudas</span>
+      </div>
+      <div class="nav-item" onclick="navigate(SCREENS.ACTIVIDAD)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        </span>
+        <span class="nav-label">Actividad</span>
+      </div>
+    </nav>
+
+  </div>
+
+  <!-- PANTALLA: Deudas -->
+  <div id="screen-deudas" class="screen">
+
+    <div class="header">
+      <div class="header-avatar" 
+          onclick="navigate(SCREENS.PERFIL)">
+        <span id="deudas-avatar"></span>
+      </div>
+      <span class="header-logo">FinTrack</span>
+      <div class="header-icon" onclick="navigate(SCREENS.NOTIFICACIONES)">
+      </div>
+    </div>
+
+    <div class="screen-content">
+
+      <!-- RESUMEN -->
+      <div class="deudas-resumen-container">
+        <p class="card-label">TOTAL PENDIENTE</p>
+        <h2 class="deudas-total" id="deudas-total">S/ 0.00</h2>
+      </div>
+
+      <!-- HEADER LISTA + BOTÓN AÑADIR -->
+      <div class="section-header">
+        <p class="section-title">Mis Deudas</p>
+        <button class="deudas-btn-add" 
+                onclick="mostrarModalDeuda()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
+          Nueva
+        </button>
+      </div>
+
+      <!-- ACTIVAS -->
+      <div id="deudas-activas-container">
+        <!-- Se llena con JS -->
+      </div>
+
+      <!-- PAGADAS -->
+      <div id="deudas-pagadas-section" style="display:none">
+        <div class="deudas-seccion-label">
+          <span>PAGADAS</span>
+        </div>
+        <div id="deudas-pagadas-container"></div>
+      </div>
+
+      <div id="deudas-empty" class="empty-state" 
+          style="display:none">
+        Sin deudas registradas.<br>
+        Añade una con el botón Nueva ✓
+      </div>
+
+    </div>
+
+    <!-- NAV INFERIOR -->
+    <nav class="bottom-nav">
+      <div class="nav-item" onclick="navigate(SCREENS.HOME)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
+        </span>
+        <span class="nav-label">Inicio</span>
+      </div>
+      <div class="nav-item" onclick="navigate(SCREENS.REGISTRO)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg>
+        </span>
+        <span class="nav-label">Registro</span>
+      </div>
+      <div class="nav-item active" onclick="navigate(SCREENS.DEUDAS)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3"/><path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8"/><path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/></svg>
+        </span>
+        <span class="nav-label">Deudas</span>
+      </div>
+      <div class="nav-item" onclick="navigate(SCREENS.ACTIVIDAD)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        </span>
+        <span class="nav-label">Actividad</span>
+      </div>
+    </nav>
+
+    <!-- MODAL: Nueva / Editar Deuda -->
+    <div class="modal-overlay" id="modal-deuda" style="display:none">
+      <div class="modal-card">
+        <h3 class="modal-title" id="modal-deuda-titulo">Nueva Deuda</h3>
+
+        <div>
+          <input type="number"
+                id="deuda-input-monto"
+                class="input-field"
+                placeholder="S/ 0.00"
+                min="0.01" step="0.01">
+          <div class="input-error-msg" id="error-deuda-monto">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"/><path d="M12 16h.01"/></svg>
+            <span id="error-deuda-monto-text">Ingresa un monto válido mayor a 0</span>
+          </div>
+        </div>
+
+        <div>
+          <input type="text"
+                id="deuda-input-persona"
+                class="input-field"
+                placeholder="Nombre del deudor o acreedor"
+                maxlength="30">
+          <div class="input-error-msg" id="error-deuda-persona">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"/><path d="M12 16h.01"/></svg>
+            <span id="error-deuda-persona-text">El nombre es obligatorio</span>
+          </div>
+        </div>
+
+        <div>
+          <input type="date"
+                id="deuda-input-fecha"
+                class="input-field">
+          <div class="input-error-msg" id="error-deuda-fecha">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"/><path d="M12 16h.01"/></svg>
+            <span id="error-deuda-fecha-text">Selecciona la fecha de vencimiento</span>
+          </div>
+        </div>
+
+        <input type="text"
+              id="deuda-input-descripcion"
+              class="input-field"
+              placeholder="Descripción (opcional)"
+              maxlength="60">
+
+        <!-- subtítulo modo restringido -->
+        <p class="modal-subtitle" id="modal-deuda-subtitulo" style="display:none"></p>
+
+        <!-- fecha real de pago (solo visible en modo pagada) -->
+        <div id="deuda-fecha-pago-wrap" style="display:none">
+          <label class="editar-label">Fecha real de pago</label>
+          <input type="date"
+                id="deuda-input-fecha-pago"
+                class="input-field">
+          <div class="input-error-msg" id="error-deuda-fecha-pago">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"/><path d="M12 16h.01"/></svg>
+            Ingresa la fecha real de pago
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="guardarDeuda()">
+          Guardar Deuda
+        </button>
+        <button class="btn-ghost" onclick="cerrarModalDeuda()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal: Opciones de deuda -->
+    <div class="modal-overlay" id="modal-opciones-deuda" style="display:none">
+      <div class="modal-card">
+        <h3 class="modal-title" id="modal-opciones-titulo">Opciones</h3>
+        <div id="modal-opciones-botones">
+          <!-- se inyecta dinámicamente en opcionesDeuda() -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Confirmar pago -->
+    <div class="modal-overlay" id="modal-confirmar-pago" style="display:none">
+      <div class="modal-card">
+        <h3 class="modal-title">Confirmar pago</h3>
+        <p class="modal-subtitle" id="modal-pago-texto">
+          ¿Marcar esta deuda como pagada?
+        </p>
+        <button class="btn-primary" onclick="confirmarPago()">
+          Sí, ya pagué
+        </button>
+        <button class="btn-ghost" onclick="cerrarModalPago()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PANTALLA 5: Actividad -->
+  <div id="screen-actividad" class="screen">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-avatar" 
+          onclick="navigate(SCREENS.PERFIL)">
+        <span id="actividad-avatar"></span>
+      </div>
+      <span class="header-logo">FinTrack</span>
+      <div class="header-icon" onclick="navigate(SCREENS.NOTIFICACIONES)">
+      </div>
+    </div>
+
+    <div class="screen-content">
+
+      <!-- SALDO ACTUAL -->
+      <div class="actividad-saldo-container">
+        <p class="card-label">SALDO ACTUAL</p>
+        <h2 class="actividad-saldo" id="actividad-saldo">
+          S/ 0.00
+        </h2>
+      </div>
+
+      <!-- TÍTULO Y FILTRO -->
+      <div class="section-header">
+        <p class="section-title">Registro de Actividad</p>
+        <span class="section-link" 
+              onclick="toggleFiltro()">⇅</span>
+      </div>
+
+      <!-- LISTA DE TRANSACCIONES -->
+      <div id="actividad-lista">
+        <!-- Se llena con JavaScript -->
+      </div>
+
+    </div>
+
+    <!-- NAV INFERIOR -->
+    <nav class="bottom-nav">
+      <div class="nav-item" onclick="navigate(SCREENS.HOME)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
+        </span>
+        <span class="nav-label">Inicio</span>
+      </div>
+      <div class="nav-item" onclick="navigate(SCREENS.REGISTRO)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg>
+        </span>
+        <span class="nav-label">Registro</span>
+      </div>
+      <div class="nav-item" onclick="navigate(SCREENS.DEUDAS)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3"/><path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8"/><path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/></svg>
+        </span>
+        <span class="nav-label">Deudas</span>
+      </div>
+      <div class="nav-item active" onclick="navigate(SCREENS.ACTIVIDAD)">
+        <span class="nav-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        </span>
+        <span class="nav-label">Actividad</span>
+      </div>
+    </nav>
+
+    <!-- Modal: Confirmar eliminar transacción -->
+    <div class="modal-overlay" id="modal-eliminar-tx" style="display:none">
+      <div class="modal-card">
+        <h3 class="modal-title">Eliminar transacción</h3>
+        <p class="modal-subtitle">
+          Esta acción no se puede deshacer.  Si el pago está vinculado a una deuda, la deuda volverá a pendiente.
+        </p>
+        <button class="btn-primary btn-rojo" 
+                id="btn-confirmar-eliminar-tx">
+          Sí, eliminar
+        </button>
+        <button class="btn-ghost" onclick="cerrarModalEliminarTx()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PANTALLA 6: Perfil -->
+  <div id="screen-perfil" class="screen">
+    <div class="subscreen-content">
+
+      <!-- HEADER -->
+      <div class="subscreen-header">
+        <button class="btn-back" onclick="navigateBack()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l4 4"/><path d="M5 12l4 -4"/></svg>
+        </button>
+        <span class="subscreen-title">FinTrack</span>
+        <button class="btn-edit-text" 
+                onclick="navigate(SCREENS.EDITAR_PERFIL)">
+          Editar
+        </button>
+      </div>
+
+      <!-- AVATAR -->
+      <div class="perfil-avatar-container">
+        <div class="perfil-avatar" id="perfil-avatar-letra"></div>
+        <div class="perfil-avatar-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-camera"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+        </div>
+      </div>
+
+      <!-- NOMBRE Y SUBTÍTULO -->
+      <h2 class="perfil-nombre" id="perfil-nombre"></h2>
+      <p class="perfil-subtitulo">Tu dinero, bajo control.</p>
+
+      <!-- SECCIÓN INFORMACIÓN -->
+      <p class="perfil-seccion-label">INFORMACIÓN PERSONAL</p>
+      <div class="perfil-card">
+        <div class="perfil-row">
+          <div class="perfil-row-left">
+            <div class="perfil-row-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M3.6 9h16.8"/><path d="M3.6 15h16.8"/><path d="M11.5 3a17 17 0 0 0 0 18"/><path d="M12.5 3a17 17 0 0 1 0 18"/></svg>
+            </div>
+            <span class="perfil-row-label">País</span>
+          </div>
+          <span class="perfil-row-value" id="perfil-pais">Perú</span>
+        </div>
+        <div class="perfil-divider"></div>
+        <div class="perfil-row">
+          <div class="perfil-row-left">
+            <div class="perfil-row-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-cash"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3" /><path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8" /><path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /></svg>
+            </div>
+            <span class="perfil-row-label">Moneda local</span>
+          </div>
+          <span class="perfil-row-value accent" 
+                id="perfil-moneda">Soles (S/)</span>
+        </div>
+      </div>
+
+      <!-- SECCIÓN SOPORTE -->
+      <p class="perfil-seccion-label">SOPORTE</p>
+      <div class="perfil-card">
+        <div class="perfil-row"
+            style="cursor:pointer"
+            onclick="navigate(SCREENS.FEEDBACK)">
+          <div class="perfil-row-left">
+            <div class="perfil-row-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M21 14l-3 -3h-7a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1h9
+                        a1 1 0 0 1 1 1v10"/>
+                <path d="M14 15v2a1 1 0 0 1 -1 1h-7l-3 3v-10a1 1 0 0 1 1 -1h2"/>
+              </svg>
+            </div>
+            <span class="perfil-row-label">Sugerencias y Soporte</span>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M9 6l6 6l-6 6"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- SECCIÓN AJUSTES -->
+      <p class="perfil-seccion-label">SEGURIDAD Y AJUSTES</p>
+      <div class="perfil-card">
+        <div class="perfil-row clickable-danger" 
+            onclick="cerrarSesion()">
+          <div class="perfil-row-left">
+            <div class="perfil-row-icon danger">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></svg>
+            </div>
+            <span class="perfil-row-label danger">Cerrar Sesión</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer fijo estilo nav -->
+      <div class="perfil-footer-bar">
+        <p class="perfil-footer-text">© 2026 FinTrack.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA 7: Editar Perfil -->
+  <div id="screen-editar-perfil" class="screen">
+    <div class="subscreen-content">
+
+      <!-- HEADER -->
+      <div class="subscreen-header">
+        <button class="btn-back" 
+                onclick="navigate(SCREENS.PERFIL)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l4 4"/><path d="M5 12l4 -4"/></svg>
+        </button>
+        <span class="subscreen-title" style="margin-right: 20px;">FinTrack</span>
+        <div style="width:40px"></div>
+      </div>
+
+      <h2 class="editar-titulo">Editar Perfil</h2>
+
+      <!-- AVATAR -->
+      <div class="editar-avatar-container">
+        <div class="perfil-avatar perfil-avatar-lg" 
+            id="editar-avatar-letra"></div>
+        <p class="editar-avatar-label">INICIAL DE PERFIL</p>
+      </div>
+
+      <!-- FORMULARIO -->
+      <div class="editar-form">
+        <label class="editar-label">Nombre</label>
+        <div class="editar-input-wrapper">
+          <div class="editar-input-nombre">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 10a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/></svg>
+            <input 
+              type="text" 
+              id="editar-input-nombre"
+              class="input-field editar-input"
+              placeholder="Tu nombre"
+              maxlength="20"
+            >
+          </div>
+          <div class="input-error-msg" id="error-editar-nombre">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536a1.914 1.914 0 0 0-3.274 0"/><path d="M12 16h.01"/></svg>
+            <span id="error-editar-nombre-text">El nombre no puede estar vacío</span>
+          </div>
+        </div>
+
+        <!-- Campo 1: País (combobox) -->
+        <label class="editar-label">País de Residencia</label>
+        <div id="combo-pais-wrapper" class="combo-wrapper">
+          <div class="combo-input-row">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>
+              <path d="M3.6 9h16.8"/><path d="M3.6 15h16.8"/>
+              <path d="M11.5 3a17 17 0 0 0 0 18"/>
+              <path d="M12.5 3a17 17 0 0 1 0 18"/>
+            </svg>
+            <input
+              type="text"
+              id="combo-pais-input"
+              class="input-field combo-input"
+              placeholder="Buscar país..."
+              autocomplete="off"
+            >
+            <svg class="combo-chevron" xmlns="http://www.w3.org/2000/svg"
+                width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M6 9l6 6l6 -6"/>
+            </svg>
+          </div>
+          <div id="combo-pais-dropdown" class="combo-dropdown" style="display:none"></div>
+        </div>
+
+        <!-- Campo 2: Moneda base (custom dropdown, mismo estilo que país) -->
+        <label class="editar-label">Moneda Base</label>
+        <div id="combo-moneda-wrapper" class="combo-wrapper">
+          <div class="combo-input-row" onclick="_toggleMonedaDropdown()" style="cursor:pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3"/>
+              <path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12
+                      a1 1 0 0 1 -1 -1l0 -8"/>
+              <path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
+            </svg>
+            <input
+              type="text"
+              id="combo-moneda-display"
+              class="input-field combo-input"
+              placeholder="Seleccionar moneda"
+              readonly
+              style="cursor:pointer"
+            >
+            <svg class="combo-chevron" xmlns="http://www.w3.org/2000/svg"
+                width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M6 9l6 6l6 -6"/>
+            </svg>
+          </div>
+          <div id="combo-moneda-dropdown" class="combo-dropdown" style="display:none"></div>
+        </div>
+
+        <button class="btn-primary editar-btn-guardar" 
+                onclick="guardarEdicion()">
+          Guardar Cambios
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PANTALLA: Notificaciones -->
+  <div id="screen-notificaciones" class="screen">
+    <div class="subscreen-content">
+
+      <div class="subscreen-header">
+        <button class="btn-back" 
+                onclick="navigateBack()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l4 4"/><path d="M5 12l4 -4"/></svg>
+        </button>
+        <span class="subscreen-title">FinTrack</span>
+        <div style="width:60px"></div>
+      </div>
+
+      <h2 class="editar-titulo" style="text-align:left;margin-bottom:var(--spacing-lg)">
+        Notificaciones
+      </h2>
+
+      <div id="notificaciones-lista">
+        <!-- Se llena con JS -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════ -->
+  <!-- PANTALLA: Feedback / Buzón Soporte -->
+  <!-- ══════════════════════════════════ -->
+  <div id="screen-feedback" class="screen">
+    <div class="subscreen-content">
+      
+      <!-- HEADER con botón atrás -->
+      <div class="subscreen-header">
+        <button class="btn-back" onclick="navigate(SCREENS.PERFIL)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M5 12l14 0"/>
+            <path d="M5 12l4 4"/>
+            <path d="M5 12l4 -4"/>
+          </svg>
+        </button>
+        <span class="subscreen-title">FinTrack</span>
+        <div style="width:60px"></div>
+      </div>
+    
+      <!-- CONTENIDO SCROLLABLE -->
+      <h2 class="fb-titulo">Feedback</h2>
+      <p class="fb-subtitulo">
+        Ayúdanos a mejorar. Cuéntanos qué te gustaría ver
+        en las próximas versiones.
+      </p>
+  
+      <!-- ── PUNTUACIÓN ───────────────────────────── -->
+      <p class="perfil-seccion-label">PUNTUACIÓN</p>
+      <div class="fb-estrellas-container" id="fb-estrellas">
+        <!-- Renderizado dinámicamente por feedback.js -->
+      </div>
+    
+      <!-- ── CATEGORÍA ────────────────────────────── -->
+      <p class="perfil-seccion-label">CATEGORÍA</p>
+      <div class="fb-chips-container">
+        <button class="fb-chip"
+                id="fb-chip-error"
+                onclick="fbSeleccionarCategoria('error')">
+          Error
+        </button>
+        <button class="fb-chip"
+                id="fb-chip-sugerencia"
+                onclick="fbSeleccionarCategoria('sugerencia')">
+          Sugerencia
+        </button>
+        <button class="fb-chip"
+                id="fb-chip-elogio"
+                onclick="fbSeleccionarCategoria('elogio')">
+          Elogio
+        </button>
+      </div>
+  
+      <!-- ── ASUNTO ────────────────────────────────── -->
+      <p class="perfil-seccion-label">ASUNTO</p>
+      <input
+        type="text"
+        id="fb-asunto"
+        class="input-field fb-input-asunto"
+        placeholder="Ej: Sugerencia de función"
+        maxlength="80"
+        autocomplete="off"
+      >
+    
+      <!-- ── MENSAJE ───────────────────────────────── -->
+      <p class="perfil-seccion-label">MENSAJE</p>
+      <div class="fb-textarea-wrap">
+        <textarea
+          id="fb-mensaje"
+          class="fb-textarea"
+          placeholder="Escribe tu mensaje aquí..."
+          maxlength="500"
+        ></textarea>
+        <span class="fb-contador" id="fb-contador">0 / 500</span>
+      </div>
+    
+      <!-- ── BOTÓN ENVIAR ──────────────────────────── -->
+      <button
+        class="btn-primary fb-btn-enviar"
+        id="fb-btn-enviar"
+        onclick="sendFeedbackToDiscord()"
+        disabled
+      >
+        Enviar mensaje →
+      </button>
+  
+      <p class="fb-footer-note">
+        Tu mensaje llegará directamente a nuestro equipo de desarrollo.
+      </p>
+      
+    </div>
+  </div><!-- /screen-feedback -->
+
+  <!-- Scripts, siempre al final del body -->
+  <script src="js/icons.js"></script>
+  <script src="js/config.js"></script> 
+  <script src="js/storage.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/screens/splash.js"></script>
+  <script src="js/screens/onboarding.js"></script>
+  <script src="js/screens/home.js"></script>
+  <script src="js/screens/registro.js"></script>
+  <script src="js/screens/deudas.js"></script>
+  <script src="js/screens/actividad.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/screens/perfil.js"></script>
+  <script src="js/screens/notificaciones.js"></script>
+  <script src="js/feedback.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+</body>
+</html>
