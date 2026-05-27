@@ -2,7 +2,7 @@
   "name": "FinTrack",
   "short_name": "FinTrack",
   "description": "Tu dinero, bajo control.",
-  "start_url": "/",
+  "start_url": "/fintrack-app/",
   "display": "standalone",
   "background_color": "#131313",
   "theme_color": "#131313",
