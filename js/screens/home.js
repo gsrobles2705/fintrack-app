@@ -35,14 +35,15 @@ function calcularSaldoActual(transactions) {
 }
 
 function calcularBalanceSemanal(transactions) {
-  const ahora       = new Date();
+  const ahora        = new Date();
   const inicioSemana = new Date(ahora);
-  const dia         = ahora.getDay() || 7;
+  const dia          = ahora.getDay() || 7;
   inicioSemana.setDate(ahora.getDate() - dia + 1);
   inicioSemana.setHours(0, 0, 0, 0);
 
   return transactions
     .filter(t => new Date(t.date) >= inicioSemana)
+    .filter(t => t.category !== 'capital_inicial')
     .reduce((total, t) =>
       t.type === 'ingreso' ? total + t.amount : total - t.amount, 0);
 }
