@@ -39,7 +39,7 @@ body::after {
 }
 
 /* ======================== */
-/*     SPLASH               */
+/*     SPLASH SCREEN        */
 /* ======================== */
 
 #screen-splash {
@@ -223,7 +223,7 @@ body::after {
 }
 
 /* ======================== */
-/*     HEADER UNIVERSAL     */
+/*     UNIVERSAL HEADER     */
 /* ======================== */
 
 .header {
@@ -272,7 +272,7 @@ body::after {
 }
 
 /* ======================== */
-/*     CONTENIDO SCROLL     */
+/*     SCROLLABLE CONTENT   */
 /* ======================== */
 
 .screen-content {
@@ -284,11 +284,23 @@ body::after {
 }
 
 /* ======================== */
-/*     HOME                 */
+/*     HOME SCREEN          */
 /* ======================== */
 
 #screen-home {
-  position: relative; 
+  position: relative;
+  overflow-x: hidden; /* prevents the decorative ::before pseudo-element from causing horizontal scroll */
+}
+
+/* Prevent horizontal scrolling on the Home screen */
+#screen-home .screen-content {
+  overflow-x: hidden;
+  position: relative;
+}
+
+.screen .screen-content,
+.screen .subscreen-content {
+  overflow-x: hidden;
 }
 
 #screen-home > .screen-content {
@@ -496,7 +508,7 @@ body::after {
 }
 
 /* ======================== */
-/*   TRANSACCIÓN ITEM       */
+/*   TRANSACTION ITEM       */
 /* ======================== */
 
 .transaction-item {
@@ -557,10 +569,10 @@ body::after {
   line-height: 1.8;
 }
 
-/* Aviso balance insuficiente */
+/* Insufficient balance warning */
 .aviso-balance {
   display: none;
-  align-items: center;   /* centrado vertical del ícono con el texto */
+  align-items: center;   /* vertically centers icon with text */
   gap: var(--spacing-sm);
   background: rgba(245, 158, 11, 0.08);
   border: 1px solid rgba(245, 158, 11, 0.35);
@@ -587,7 +599,7 @@ body::after {
 }
 
 
-/* Botones confirmar con brillo */
+/* Confirm buttons with glow */
 .btn-confirmar.modo-gasto {
   background: var(--accent-red);
   box-shadow: 0 0 14px rgba(240, 84, 84, 0.25),
@@ -738,7 +750,7 @@ body::after {
 .btn-ghost:active { color: var(--text-primary); }
 
 /* ======================== */
-/*     REGISTRO             */
+/*     REGISTRO SCREEN      */
 /* ======================== */
 
 .toggle-container {
@@ -842,7 +854,7 @@ body::after {
   transition: stroke 0.2s;
 }
 
-/* Color según tipo */
+/* Color by transaction type */
 .tipo-gasto .monto-custom-arrow svg  { stroke: var(--accent-red); }
 .tipo-ingreso .monto-custom-arrow svg { stroke: var(--accent-green); }
 
@@ -904,7 +916,7 @@ body::after {
   text-align: center;
 }
 
-/* Solo el círculo cambia de color */
+/* Only the icon circle changes color */
 .categoria-btn.selected.modo-gasto .categoria-icon-wrap {
   background: rgba(240, 84, 84, 0.15);
   border-color: var(--accent-red);
@@ -1000,7 +1012,7 @@ body::after {
 }
 
 /* ======================== */
-/*     DEUDAS               */
+/*     DEBTS SCREEN         */
 /* ======================== */
 
 .deudas-resumen-container {
@@ -1184,26 +1196,26 @@ body::after {
   stroke: var(--accent-green);
 }
 
-/* Nav de 4 items más compacto */
+/* 4-item nav — more compact */
 .bottom-nav .nav-item {
   padding: 4px var(--spacing-sm);
 }
 
-/* Doble fecha en tarjetas pagadas */
+/* Two-date layout for paid debt cards */
 .deuda-fechas-pagada {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* ── Modal opciones: espacio entre botones ── */
+/* Debt options modal — spacing between buttons */
 #modal-opciones-botones {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
 }
 
-/* ── Inputs deshabilitados en "Editar deuda pagada" ── */
+/* Disabled inputs in "Edit paid debt" mode */
 .input-field:disabled {
   background: var(--bg-card-2);
   color: var(--text-tertiary);
@@ -1212,7 +1224,7 @@ body::after {
   cursor: not-allowed;
 }
 
-/* ── Fecha real de pago: separación label + input ── */
+/* Actual payment date — label + input spacing */
 #deuda-fecha-pago-wrap {
   display: flex;
   flex-direction: column;
@@ -1225,7 +1237,7 @@ body::after {
 }
 
 /* ======================== */
-/*     ACTIVIDAD            */
+/*     ACTIVITY SCREEN      */
 /* ======================== */
 
 .actividad-saldo-container {
@@ -1284,8 +1296,13 @@ body::after {
   color: white;
 }
 
+.btn-eliminar svg {
+  display: block;
+  margin: 0 auto;
+}
+
 /* ======================== */
-/*   SUBPANTALLAS (PERFIL)  */
+/*   SUB-SCREENS (PROFILE)  */
 /* ======================== */
 
 .subscreen-content {
@@ -1297,7 +1314,7 @@ body::after {
   min-height: 100vh;
 }
 
-/* Header idéntico al universal */
+/* Header identical to the universal one */
 .subscreen-header {
   display: flex;
   justify-content: space-between;
@@ -1312,7 +1329,7 @@ body::after {
   z-index: 10;
 }
 
-/* FinTrack igual que .header-logo */
+/* FinTrack title — same style as .header-logo */
 .subscreen-title {
   font-size: 17px;
   font-weight: 800;
@@ -1354,7 +1371,7 @@ body::after {
 }
 
 /* ======================== */
-/*     PERFIL               */
+/*     PROFILE SCREEN       */
 /* ======================== */
 
 .perfil-avatar-container {
@@ -1514,7 +1531,7 @@ body::after {
   background: var(--accent-red-dim);
 }
 
-/* Footer con línea superior */
+/* Footer with top border */
 .perfil-footer {
   text-align: center;
   font-size: 11px;
@@ -1551,7 +1568,7 @@ body::after {
 }
 
 /* ======================== */
-/*     EDITAR PERFIL        */
+/*     EDIT PROFILE         */
 /* ======================== */
 
 .editar-titulo {
@@ -1621,7 +1638,7 @@ body::after {
   margin-top: var(--spacing-xl);
 }
 
-/* Error en modales */
+/* Inline error in modals */
 .modal-error {
   display: none;
   align-items: center;
@@ -1640,14 +1657,14 @@ body::after {
   flex-shrink: 0;
 }
 
-/* Botón deshabilitado */
+/* Disabled button state */
 .btn-primary:disabled {
   opacity: 0.35;
   cursor: not-allowed;
   transform: none;
 }
 
-/* Variantes de color en botones de modal */
+/* Modal button color variants */
 .btn-rojo {
   background: var(--accent-red) !important;
   color: #fff !important;
@@ -1659,7 +1676,7 @@ body::after {
   color: #000 !important;
 }
 
-/* Botón "Eliminar pago" — acción secundaria/neutra, no destructiva */
+/* "Remove payment" button — secondary/neutral, non-destructive action */
 .btn-eliminar-pago {
   background: rgba(255, 255, 255, 0.04) !important;
   color: var(--text-secondary) !important;
@@ -1675,7 +1692,7 @@ body::after {
 }
 
 /* ======================== */
-/*   ERRORES INLINE DEUDA   */
+/*   INLINE DEBT ERRORS     */
 /* ======================== */
 
 /*
@@ -1738,7 +1755,7 @@ body::after {
  *     la separación visual iguale la de los otros campos.
  * ─────────────────────────────────────────────────────────────── */
 #screen-onboarding #input-nombre {
-  margin-bottom: var(--spacing-sm);   /* iguala el gap País↔Moneda */
+  margin-bottom: var(--spacing-sm);   /* matches the Country↔Currency gap */
 }
 
 #screen-onboarding #error-onb-nombre {
@@ -1754,7 +1771,7 @@ body::after {
   margin: 0 !important;
 }
 
-/* Tags de deuda pagada */
+/* Paid debt status tags */
 .deuda-tag {
   font-size: 10px;
   font-weight: 700;
@@ -1774,7 +1791,7 @@ body::after {
 }
 
 /* ======================== */
-/*   NOTIFICACIONES         */
+/*   NOTIFICATIONS          */
 /* ======================== */
 
 .notif-seccion-label {
@@ -1786,11 +1803,11 @@ body::after {
   margin-top: var(--spacing-lg);
 }
 
-/* ── Tarjeta base ── */
+/* Base notification card */
 .notif-card {
   display: flex;
   gap: var(--spacing-md);
-  background: rgba(28, 27, 27, 0.6);          /* bg-card translúcido  */
+  background: rgba(28, 27, 27, 0.6);          /* translucent bg-card */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1806,7 +1823,7 @@ body::after {
   background: rgba(42, 42, 42, 0.7);
 }
 
-/* Sin leer: fondo ligeramente más claro */
+/* Unread: slightly lighter background */
 .notif-card.unread {
   background: rgba(36, 35, 35, 0.8);
   border-top-color: rgba(255, 255, 255, 0.09);
@@ -1814,12 +1831,12 @@ body::after {
   border-bottom-color: rgba(255, 255, 255, 0.09);
 }
 
-/* ── Ícono circular ── */
+/* Circular icon wrapper */
 .notif-icon-wrap {
   width: 40px;
   height: 40px;
   min-width: 40px;                             /* evita que se comprima */
-  border-radius: 50%;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1827,7 +1844,7 @@ body::after {
   /* color y background vienen del JS inline */
 }
 
-/* ── Cuerpo de texto ── */
+/* Text body */
 .notif-body {
   flex: 1;
   min-width: 0;                                /* permite truncar texto */
@@ -1863,7 +1880,7 @@ body::after {
   line-height: 1.5;
 }
 
-/* ── Estado vacío ── */
+/* Empty state */
 .notif-empty {
   display: flex;
   flex-direction: column;
@@ -1904,11 +1921,10 @@ body::after {
 }
 
 /* ======================== */
-/*   HEADER GLASSMORPHISM   */
+/*   GLASSMORPHISM HEADER   */
 /* ======================== */
 
-/* Sube el z-index y añade blur para que el contenido
-   pase por debajo limpiamente al hacer scroll         */
+/* Elevated z-index + blur so content scrolls cleanly underneath */
 .header {
   z-index: 100;
   background-color: rgba(19, 19, 19, 0.85);
@@ -1924,7 +1940,7 @@ body::after {
 }
 
 /* ======================== */
-/*   SELECTOR DE PAÍSES     */
+/*   COUNTRY SELECTOR       */
 /* ======================== */
 
 .pais-lista {
@@ -1979,7 +1995,7 @@ body::after {
 }
 
 /* ======================== */
-/*   COMBOBOX (PAÍS)        */
+/*   COUNTRY COMBOBOX       */
 /* ======================== */
 
 .combo-wrapper {
@@ -1991,7 +2007,7 @@ body::after {
   margin-bottom: 8px;
 }
 
-/* Fila: icono + input + chevron */
+/* Row: icon + input + chevron */
 .combo-input-row {
   position: relative;
   display: flex;
@@ -2021,7 +2037,7 @@ body::after {
   transition: transform 0.2s;
 }
 
-/* Dropdown flotante */
+/* Floating dropdown */
 .combo-dropdown {
   position: absolute;
   top: calc(100% + 6px);
@@ -2074,7 +2090,7 @@ body::after {
   text-align: center;
 }
 
-/* Select de moneda */
+/* Currency select */
 .combo-select-wrapper {
   position: relative;
   display: flex;
@@ -2100,7 +2116,7 @@ body::after {
 }
 
 /* ======================== */
-/*   SELECT MONEDA (tema)   */
+/*   CURRENCY SELECT THEME  */
 /* ======================== */
 
 .combo-select {
@@ -2113,7 +2129,7 @@ body::after {
   width: 100%;
 }
 
-/* Las opciones también deben respetar el tema */
+/* Options must also follow the dark theme */
 .combo-select option {
   background-color: var(--bg-card-high);
   color: var(--text-primary);
@@ -2122,7 +2138,7 @@ body::after {
 }
 
 /* ======================== */
-/*   BADGE NOTIFICACIONES   */
+/*   NOTIFICATION BADGE     */
 /* ======================== */
 
 .header-icon {
@@ -2135,7 +2151,7 @@ body::after {
   justify-content: center;
 }
 
-/* Campana vibrando: animación sutil al aparecer */
+/* Bell ring: subtle animation on appearance */
 .notif-bell-svg svg {
   transition: stroke 0.2s;
 }
@@ -2148,7 +2164,7 @@ body::after {
   80%       { transform: rotate(-5deg); }
 }
 
-/* Solo la campana con arcos (ringing) recibe la animación */
+/* Only the ringing bell variant gets the animation */
 .notif-bell-svg:has(path[d*="21 6.727"]) svg {
   animation: bell-ring 0.6s ease-in-out;
 }
@@ -2172,7 +2188,7 @@ body::after {
   border: 1.5px solid var(--bg-primary);
   line-height: 1;
   pointer-events: none;
-  /* Aparece con pop */
+  /* Badge appears with pop animation */
   animation: badge-pop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -2182,8 +2198,8 @@ body::after {
 }
 
 /* ======================== */
-/*   MICRO-TRANSICIONES     */
-/*   CAMBIO DE PANTALLA     */
+/*   SCREEN TRANSITION      */
+/*   MICRO-ANIMATIONS       */
 /* ======================== */
 
 @keyframes screen-enter {
@@ -2208,24 +2224,24 @@ body::after {
   }
 }
 
-/* Todas las pantallas principales aplican la transición al activarse */
+/* All main screens apply the transition on activation */
 .screen.active > .screen-content,
 .screen.active > .subscreen-content {
   animation: screen-enter 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* El header queda estático para no "caer" con el contenido */
+/* Header stays static — should not animate with content */
 .screen.active > .header,
 .screen.active > .subscreen-header {
   animation: none;
 }
 
-/* Nav inferior tampoco se anima (es fijo) */
+/* Bottom nav is fixed — no animation */
 .screen.active > .bottom-nav {
   animation: none;
 }
 /* ======================== */
-/*   FEEDBACK / BUZÓN       */
+/*   FEEDBACK / SUPPORT BOX */
 /* ======================== */
 
 .fb-titulo {
@@ -2244,7 +2260,7 @@ body::after {
   margin-bottom: var(--spacing-lg);
 }
 
-/* ── Estrellas ── */
+/* Star rating */
 .fb-estrellas-container {
   display: flex;
   gap: var(--spacing-sm);
@@ -2266,7 +2282,7 @@ body::after {
 .fb-estrella:active    { transform: scale(0.9); }
 .fb-estrella:hover     { transform: scale(1.18); color: rgba(255, 176, 58, 0.55); }
 
-/* Estado activo: dorado brillante */
+/* Active state: bright gold */
 .fb-estrella.activa {
   color: #FFB03A;
   text-shadow:
@@ -2274,7 +2290,7 @@ body::after {
     0 0 20px rgba(255, 176, 58, 0.35);
 }
 
-/* ── Chips de categoría ── */
+/* Category chips */
 .fb-chips-container {
   display: flex;
   gap: var(--spacing-sm);
@@ -2299,7 +2315,7 @@ body::after {
 
 .fb-chip:active { transform: scale(0.96); }
 
-/* Activo — Error (rojo) */
+/* Active — Error (red) */
 .fb-chip.activo-rojo {
   background: rgba(240, 84, 84, 0.10);
   border-color: var(--accent-red);
@@ -2307,7 +2323,7 @@ body::after {
   box-shadow: 0 0 12px rgba(240, 84, 84, 0.18);
 }
 
-/* Activo — Sugerencia (dorado) */
+/* Active — Suggestion (gold) */
 .fb-chip.activo-dorado {
   background: rgba(255, 176, 58, 0.10);
   border-color: #FFB03A;
@@ -2315,7 +2331,7 @@ body::after {
   box-shadow: 0 0 12px rgba(255, 176, 58, 0.18);
 }
 
-/* Activo — Elogio (verde) */
+/* Active — Praise (green) */
 .fb-chip.activo-verde {
   background: var(--accent-green-dim);
   border-color: var(--accent-green);
@@ -2323,12 +2339,12 @@ body::after {
   box-shadow: 0 0 12px rgba(80, 200, 120, 0.18);
 }
 
-/* ── Input de asunto ── */
+/* Subject input */
 .fb-input-asunto {
   margin-bottom: var(--spacing-md);
 }
 
-/* ── Textarea con contador ── */
+/* Textarea with character counter */
 .fb-textarea-wrap {
   position: relative;
   margin-bottom: var(--spacing-lg);
@@ -2372,17 +2388,17 @@ body::after {
   font-family: var(--font-main);
 }
 
-/* El contador se vuelve ámbar cerca del límite */
+/* Counter turns amber near the limit */
 .fb-contador.cerca    { color: #FFB03A; }
 .fb-contador.al-limite { color: var(--accent-red); }
 
-/* ── Botón enviar ── */
+/* Send button */
 .fb-btn-enviar {
   margin-bottom: var(--spacing-md);
   letter-spacing: 0.2px;
 }
 
-/* ── Nota inferior ── */
+/* Bottom note */
 .fb-footer-note {
   text-align: center;
   font-size: 12px;
@@ -2390,4 +2406,127 @@ body::after {
   line-height: 1.55;
   padding: 0 var(--spacing-sm);
   margin-bottom: var(--spacing-md);
+}
+/* ======================== */
+/*   QUICK AMOUNTS MODAL    */
+/* ======================== */
+
+/* Header row: label + Edit button (same as categories) */
+.montos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.montos-header .registro-label {
+  margin-bottom: 0;
+}
+
+/* Individual amount edit row */
+.monto-edit-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.monto-edit-num {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-color-2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.monto-edit-input-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.monto-edit-symbol {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.monto-edit-input {
+  padding-left: 36px !important;
+  margin-bottom: 0 !important;
+  font-weight: 700 !important;
+  font-size: 17px !important;
+  letter-spacing: -0.3px;
+}
+
+/* Restore button — neutral/ghost tone */
+.btn-restaurar-montos {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.btn-restaurar-montos:active {
+  color: var(--text-secondary);
+}
+
+/* ======================== */
+/*   MODAL CLOSE ANIMATION  */
+/* ======================== */
+
+/* Closing state: overlay fades out */
+.modal-overlay.closing {
+  animation: overlay-fade-out 0.22s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes overlay-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Card slides down while overlay fades */
+.modal-overlay.closing .modal-card {
+  animation: modal-slide-down 0.22s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes modal-slide-down {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(100%); opacity: 0; }
+}
+
+/* ======================== */
+/*   SWIPE TAB TRANSITIONS  */
+/* ======================== */
+
+/* Slide in from the right (swipe left → next tab) */
+.screen.slide-in-left {
+  animation: slide-from-right 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Slide in from the left (swipe right → prev tab) */
+.screen.slide-in-right {
+  animation: slide-from-left 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes slide-from-right {
+  from { transform: translateX(48px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes slide-from-left {
+  from { transform: translateX(-48px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
 }

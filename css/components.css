@@ -1,0 +1,484 @@
+/* ================================================ */
+/*   GESTIÓN DE CATEGORÍAS                          */
+/* ================================================ */
+
+/* ── Botón "✎ Editar" junto al label CATEGORÍA ── */
+.categorias-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.categorias-header .registro-label {
+  margin-bottom: 0;
+}
+
+.btn-editar-cats {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid var(--border-color-2);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-main);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-editar-cats svg {
+  stroke: var(--text-secondary);
+  transition: stroke 0.15s;
+}
+
+.btn-editar-cats:active {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.btn-editar-cats:active svg {
+  stroke: var(--accent-green);
+}
+
+/* ── Lista de categorías en el modal de gestión ── */
+.cat-manage-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cat-manage-item:last-child {
+  border-bottom: none;
+}
+
+.cat-manage-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-color-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cat-manage-icon svg {
+  stroke: var(--text-secondary);
+}
+
+.cat-manage-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cat-manage-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cat-manage-meta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.cat-manage-acciones {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Botón editar (ícono lápiz) */
+.cat-btn-edit {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color-2);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cat-btn-edit svg {
+  stroke: var(--text-secondary);
+}
+.cat-btn-edit:active {
+  background: var(--accent-green-dim);
+  border-color: var(--accent-green);
+}
+
+/* Botón eliminar (ícono X) → estilo similar a btn-eliminar de actividad */
+.cat-btn-delete {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-red-dim);
+  border: 1px solid rgba(240, 84, 84, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cat-btn-delete svg {
+  stroke: var(--accent-red);
+}
+.cat-btn-delete:active {
+  background: var(--accent-red);
+}
+.cat-btn-delete:active svg {
+  stroke: white;
+}
+
+.cat-btn-delete.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--bg-card-2);
+  border-color: var(--border-color-2);
+}
+.cat-btn-delete.disabled svg {
+  stroke: var(--text-tertiary);
+}
+.cat-btn-delete.disabled:active {
+  background: var(--bg-card-2);
+  transform: none;
+}
+.cat-btn-delete.disabled:active svg {
+  stroke: var(--text-tertiary);
+}
+
+.cat-base-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-color-2);
+  border-radius: 999px;
+  padding: 2px 8px;
+  letter-spacing: 0.5px;
+}
+
+/* ── Botón "+ Nueva categoría" en el modal de gestión ── */
+.btn-nueva-cat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: var(--accent-green-dim);
+  border: 1px solid var(--accent-green);
+  border-radius: var(--radius-xl);
+  color: var(--accent-green);
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 14px;
+  cursor: pointer;
+  margin-top: var(--spacing-md);
+  transition: all 0.15s;
+}
+
+.btn-nueva-cat:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+/* ── Icon picker grid ── */
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px 2px;
+  margin-bottom: var(--spacing-md);
+}
+
+.icon-picker-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card-2);
+  border: 1.5px solid var(--border-color-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.icon-picker-btn svg {
+  stroke: var(--text-secondary);
+  transition: stroke 0.12s;
+}
+
+.icon-picker-btn:active {
+  transform: scale(0.9);
+}
+
+.icon-picker-btn.selected {
+  background: var(--accent-green-dim);
+  border-color: var(--accent-green);
+  box-shadow: 0 0 10px var(--accent-green-glow);
+}
+
+.icon-picker-btn.selected svg {
+  stroke: var(--accent-green);
+}
+
+/* ─── Grid de categorías: scroll horizontal para las filas extra ─ */
+#categorias-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0;
+  margin-bottom: var(--spacing-sm);
+}
+ 
+/* Cada botón ocupa 1/3 del ancho (3 por fila) */
+#categorias-container .categoria-btn {
+  width: calc(100% / 3);
+}
+ 
+/* ─── Input inline de "Otro" ───────────────────────────────────── */
+ 
+#otro-input-wrap {
+  display: none;
+  margin-bottom: var(--spacing-md);
+  animation: otro-appear 0.2s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+ 
+@keyframes otro-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+ 
+.otro-input-container {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  position: relative;
+}
+ 
+/* Línea de acento de color según tipo */
+.otro-input-container::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+ 
+.otro-input-container.modo-gasto::before  { background: var(--accent-red); }
+.otro-input-container.modo-ingreso::before { background: var(--accent-green); }
+ 
+.otro-input {
+  background: var(--bg-card-2) !important;
+  border-color: var(--border-color) !important;
+  font-size: 15px !important;
+  margin-bottom: 0 !important;
+  padding-left: var(--spacing-md) !important;
+}
+ 
+.otro-input:focus {
+  border-color: var(--accent-green) !important;
+  box-shadow: 0 0 0 3px var(--accent-green-dim) !important;
+}
+ 
+/* Modo gasto: acento rojo en el focus */
+.otro-input-container.modo-gasto .otro-input:focus {
+  border-color: var(--accent-red) !important;
+  box-shadow: 0 0 0 3px var(--accent-red-dim) !important;
+}
+ 
+.otro-input-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  margin-top: 4px;
+  padding-left: 2px;
+}
+ 
+/* ─── Modal de categorías simplificado ─────────────────────────── */
+ 
+/* Estado vacío de pinned */
+.cats-pinned-empty {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  line-height: 1.7;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  background: var(--bg-card-2);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-color);
+  margin-bottom: var(--spacing-md);
+}
+ 
+/* El botón de "Nueva categoría" en el modal (sin icono) */
+.btn-nueva-cat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: var(--accent-green-dim);
+  border: 1px solid var(--accent-green);
+  border-radius: var(--radius-xl);
+  color: var(--accent-green);
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 14px;
+  cursor: pointer;
+  margin-top: var(--spacing-md);
+  transition: all 0.15s;
+}
+ 
+.btn-nueva-cat:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+ 
+/* Icon picker visible en el formulario nueva/editar categoría */
+#cat-icon-section {
+  display: block;
+}
+ 
+/* Subtítulo explicativo en el modal de nueva categoría */
+.cat-form-hint {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  line-height: 1.55;
+  margin-top: -8px;
+  margin-bottom: var(--spacing-xs);
+}
+ 
+/* ─── Categoría btn: animación al seleccionar ─────────────────── */
+ 
+.categoria-btn {
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.12s;
+}
+ 
+/* Botón "Otro" — cuando está activo tiene glow suave */
+.categoria-btn.selected.modo-gasto .categoria-icon-wrap {
+  box-shadow: 0 0 10px rgba(240, 84, 84, 0.25);
+}
+ 
+.categoria-btn.selected.modo-ingreso .categoria-icon-wrap {
+  box-shadow: 0 0 10px rgba(80, 200, 120, 0.25);
+}
+ 
+/* ─── Separador visual entre base y pinned ─────────────────────── */
+ 
+.cats-grid-divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 4px var(--spacing-xs);
+}
+ 
+.cats-grid-divider::before,
+.cats-grid-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-color-2);
+}
+ 
+.cats-grid-divider-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* Toggle switches for category management */
+/* Toggle switches for category management */
+.cat-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.cat-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-color);
+  border-radius: 20px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+input:checked + .toggle-slider {
+  background-color: var(--accent-green);
+}
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+.cat-group-title {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 16px 0 8px 0;
+}
+.icon-group-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 12px 0 6px 0;
+  grid-column: 1 / -1;
+}
+.icon-group-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: var(--border-color-2);
+  margin: 8px 0;
+}

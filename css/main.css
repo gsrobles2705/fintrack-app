@@ -36,6 +36,18 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Desactiva el pull-to-refresh nativo del browser */
+html {
+  overscroll-behavior-y: none;
+  height: 100%;
+}
+body {
+  overscroll-behavior-y: none;
+  height: 100%;
+  /* overflow:hidden removido de body — rompía el scroll con mouse en desktop.
+     Ahora el overflow se contiene en .screen */
+}
+
 body {
   font-family: var(--font-main);
   background-color: var(--bg-primary);
@@ -50,9 +62,10 @@ body {
 
 .screen {
   display: none;
-  min-height: 100vh;
+  height: 100vh;
   flex-direction: column;
   position: relative;
+  overflow: hidden;   /* contenedor del scroll, antes estaba en body */
 }
 
 .screen.active {

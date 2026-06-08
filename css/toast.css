@@ -4,7 +4,7 @@
 
 #toast-container {
   position: fixed;
-  bottom: 90px;              /* encima del bottom-nav */
+  top: 70px;               /* debajo del header (altura aprox) */
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 32px);
@@ -38,14 +38,15 @@
   animation: toast-out 0.22s ease forwards;
 }
 
+/* Ajusta la animación de entrada: ahora viene desde arriba */
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  from { opacity: 0; transform: translateY(-12px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
 
 @keyframes toast-out {
   from { opacity: 1; transform: translateY(0)    scale(1);    }
-  to   { opacity: 0; transform: translateY(8px)  scale(0.96); }
+  to   { opacity: 0; transform: translateY(-8px) scale(0.96); }
 }
 
 /* Borde izquierdo de color por tipo */
