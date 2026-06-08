@@ -2,8 +2,8 @@
 
 const APP_VERSION = '1.1.0';
 
-// ─── Versión ──────────────────────────────────────────────────────
-function verificarNotificacionVersion() {
+// ─── Version notification ─────────────────────────────────────────
+function checkVersionNotification() {
   const flagKey = `fintrack_version_notif_${APP_VERSION}`;
   if (localStorage.getItem(flagKey)) return;
 
@@ -18,114 +18,114 @@ function verificarNotificacionVersion() {
   localStorage.setItem(flagKey, '1');
 }
 
-// ─── Utilidad: normaliza una fecha a medianoche local ─────────────
-function _medianoche(fecha) {
-  const d = new Date(fecha);
+// ─── Utility: normalise a date to local midnight ──────────────────
+function _midnight(date) {
+  const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   return d;
 }
 
-// ─── Utilidad: genera array de días entre dos fechas (inclusive) ──
-function _rangosDias(desde, hasta) {
-  const dias = [];
-  const cursor = new Date(desde);
+// ─── Utility: generate array of days between two dates (inclusive) ─
+function _dayRange(from, to) {
+  const days   = [];
+  const cursor = new Date(from);
   cursor.setHours(0, 0, 0, 0);
-  const fin = _medianoche(hasta);
+  const end = _midnight(to);
 
-  while (cursor <= fin) {
-    dias.push(new Date(cursor));
+  while (cursor <= end) {
+    days.push(new Date(cursor));
     cursor.setDate(cursor.getDate() + 1);
   }
-  return dias;
+  return days;
 }
 
 // ─────────────────────────────────────────────────────────────────
-// VERIFICACIÓN RETROSPECTIVA DE DEUDAS
-// Cubre tanto los días que el usuario no abrió la app ("días perdidos")
-// como el recordatorio diario de deudas ya vencidas y aún pendientes.
+// RETROSPECTIVE DEBT CHECK
+// Covers both days the user did not open the app ("missed days")
+// and the daily reminder for already overdue pending debts.
 // ─────────────────────────────────────────────────────────────────
-const DIAS_AVISO_PREVIO    = 2;   // días antes del vencimiento para avisar
-const KEY_ULTIMA_APERTURA  = 'fintrack_ultima_apertura';
+const ADVANCE_WARNING_DAYS  = 2;   // days before due date to warn
+const KEY_LAST_OPEN         = 'fintrack_ultima_apertura';
 
-function verificarDeudasPorVencer() {
-  const deudas = Storage.getDeudas();
-  const user   = Storage.getUser();
-  if (!user || deudas.length === 0) return;
+function checkDueDateDebts() {
+  const debts = Storage.getDebts();
+  const user  = Storage.getUser();
+  if (!user || debts.length === 0) return;
 
-  const symbol = user.symbol;
-  const hoy    = _medianoche(new Date());
+  const symbol  = user.symbol;
+  const today   = _midnight(new Date());
 
-  // Determina el rango retrospectivo: desde la última apertura hasta hoy
-  const ultimaAperturaStr = localStorage.getItem(KEY_ULTIMA_APERTURA);
-  const desde = ultimaAperturaStr
-    ? _medianoche(new Date(ultimaAperturaStr))
-    : hoy;
+  // Determine the retrospective range: from the last opening until today
+  const lastOpenStr = localStorage.getItem(KEY_LAST_OPEN);
+  const from        = lastOpenStr
+    ? _midnight(new Date(lastOpenStr))
+    : today;
 
-  // Genera todos los días a evaluar (días perdidos + hoy)
-  const diasAEvaluar = _rangosDias(desde, hoy);
+  // Generate all days to evaluate (missed days + today)
+  const daysToEvaluate = _dayRange(from, today);
 
-  deudas
+  debts
     .filter(d => !d.paid)
     .forEach(d => {
-      const venceDia = _medianoche(new Date(d.dueDate));
+      const dueDay = _midnight(new Date(d.dueDate));
 
-      diasAEvaluar.forEach(dia => {
-        const diffDias = Math.round((venceDia - dia) / 86400000);
-        const diaStr   = dia.toISOString().split('T')[0];
+      daysToEvaluate.forEach(day => {
+        const diffDays = Math.round((dueDay - day) / 86400000);
+        const dayStr   = day.toISOString().split('T')[0];
 
-        // ── Caso 1: deuda ya vencida → recordatorio diario ──────
-        if (diffDias < 0) {
-          const diasVencida = Math.abs(diffDias);
-          const flagKey = `fintrack_vencida_${d.id}_${diaStr}`;
+        // ── Case 1: already overdue → daily reminder ─────────
+        if (diffDays < 0) {
+          const overdueDays = Math.abs(diffDays);
+          const flagKey     = `fintrack_vencida_${d.id}_${dayStr}`;
           if (localStorage.getItem(flagKey)) return;
 
-          // isoDate retroactivo: medianoche del día evaluado + 8h
-          // para que aparezca con hora natural en el historial
-          const fechaNotif = new Date(dia);
-          fechaNotif.setHours(8, 0, 0, 0);
+          // Retroactive isoDate: midnight of the evaluated day + 8h
+          // so it appears with a natural time in the history
+          const notifDate = new Date(day);
+          notifDate.setHours(8, 0, 0, 0);
 
           agregarNotificacion(
             NOTIF_TIPO.DANGER,
             '🔴 Deuda vencida',
             `Tu deuda con ${d.person} venció hace ` +
-            `${diasVencida === 1 ? '1 día' : `${diasVencida} días`} ` +
+            `${overdueDays === 1 ? '1 día' : `${overdueDays} días`} ` +
             `(${symbol}${d.amount.toFixed(2)}). Sigue pendiente.`,
-            fechaNotif.toISOString()   // fecha retroactiva correcta
+            notifDate.toISOString()   // correct retroactive date
           );
 
           localStorage.setItem(flagKey, '1');
           return;
         }
 
-        // ── Caso 2: deuda próxima (dentro del margen de aviso) ──
-        if (diffDias > DIAS_AVISO_PREVIO) return;
+        // ── Case 2: upcoming debt (within warning margin) ────
+        if (diffDays > ADVANCE_WARNING_DAYS) return;
 
-        const flagKey = `fintrack_vence_notif_${d.id}_${diaStr}`;
+        const flagKey = `fintrack_vence_notif_${d.id}_${dayStr}`;
         if (localStorage.getItem(flagKey)) return;
 
-        const diasTexto = diffDias === 0
+        const daysText = diffDays === 0
           ? 'hoy'
-          : diffDias === 1
+          : diffDays === 1
             ? 'en 1 día'
-            : `en ${diffDias} días`;
+            : `en ${diffDays} días`;
 
-        const fechaNotif = new Date(dia);
-        fechaNotif.setHours(8, 0, 0, 0);
+        const notifDate = new Date(day);
+        notifDate.setHours(8, 0, 0, 0);
 
         agregarNotificacion(
           NOTIF_TIPO.WARNING,
           '⚠️ Deuda próxima a vencer',
-          `Tu deuda con ${d.person} vence ${diasTexto} ` +
+          `Tu deuda con ${d.person} vence ${daysText} ` +
           `(${symbol}${d.amount.toFixed(2)}).`,
-          fechaNotif.toISOString()
+          notifDate.toISOString()
         );
 
         localStorage.setItem(flagKey, '1');
       });
     });
 
-  // Registra la fecha de esta apertura para el próximo cálculo retrospectivo
-  localStorage.setItem(KEY_ULTIMA_APERTURA, hoy.toISOString());
+  // Record today's opening date for the next retrospective calculation
+  localStorage.setItem(KEY_LAST_OPEN, today.toISOString());
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -138,11 +138,11 @@ function initApp() {
     const user = Storage.getUser();
 
     if (user) {
-      // Solicita permiso de notificaciones push la primera vez
+      // Request push notification permission the first time
       await solicitarPermisoNotificaciones();
-
-      verificarNotificacionVersion();
-      verificarDeudasPorVencer();
+      checkVersionNotification();
+      checkDueDateDebts();
+      Storage.migrateTransactions();   // add categoryLabel/Icon to old transactions
       navigate(SCREENS.HOME);
     } else {
       navigate(SCREENS.ONBOARDING);
@@ -152,11 +152,11 @@ function initApp() {
 
 document.addEventListener('DOMContentLoaded', initApp);
 
-// ─── navigate global con badge reactivo ──────────────────────────
-const originalNavigate = navigate;
+// ─── Global navigate with reactive badge ─────────────────────────
+const _originalNavigate = navigate;
 window.navigate = function(screenId) {
-  originalNavigate(screenId);
-  actualizarBadgeNotificaciones();
+  _originalNavigate(screenId);
+  updateNotificationBadge();
   if (screenId === SCREENS.ONBOARDING)     initOnboarding();
   if (screenId === SCREENS.HOME)           renderHome();
   if (screenId === SCREENS.REGISTRO)       initRegistro();

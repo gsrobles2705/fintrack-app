@@ -1,84 +1,84 @@
 // deudas.js
 
-let deudaEditandoId = null;
-let deudaOpcionesId = null;
-let deudaPagoId     = null;
+let editingDebtId   = null;
+let debtOptionsId   = null;
+let payingDebtId    = null;
 
 // ─────────────────────────────────────────────
-// UTILIDADES DE FECHA — Fix 7
+// DATE UTILITIES — Fix 7
 //
-// PROBLEMA: new Date("YYYY-MM-DD") interpreta la cadena como
-// MEDIANOCHE UTC.  En UTC-5 (Perú) eso equivale a las 19:00 del
-// día ANTERIOR, provocando que la app muestre "23 may" cuando el
-// usuario eligió "24 may".
+// PROBLEM: new Date("YYYY-MM-DD") interprets the string as
+// MIDNIGHT UTC. In UTC-5 (Peru) that equals 19:00 of the
+// PREVIOUS day, causing the app to show "23 may" when the
+// user chose "24 may".
 //
-// SOLUCIÓN (enfoque por componentes locales):
-//   Extraer año, mes y día del string y construir el Date con el
-//   constructor multi-argumento → siempre zona horaria LOCAL.
-//   Se usa mediodía (12 h) como hora de referencia para que ningún
-//   offset real (UTC-12 … UTC+14) desplace la fecha.
+// SOLUTION (local components approach):
+//   Extract year, month and day from the string and build the Date
+//   with the multi-argument constructor → always LOCAL timezone.
+//   Noon (12h) is used as the reference time so no real offset
+//   (UTC-12 … UTC+14) shifts the date.
 // ─────────────────────────────────────────────
 
-/** Convierte "YYYY-MM-DD" → ISO string con fecha local al mediodía. */
-function parseFechaLocal(fechaStr) {
-  if (!fechaStr) return null;
-  const [anio, mes, dia] = fechaStr.split('-').map(Number);
-  // Constructor local: no depende de UTC
-  return new Date(anio, mes - 1, dia, 12, 0, 0).toISOString();
+/** Converts "YYYY-MM-DD" → ISO string with local date at noon. */
+function parseLocalDate(dateStr) {
+  if (!dateStr) return null;
+  const [year, month, day] = dateStr.split('-').map(Number);
+  // Local constructor: does not depend on UTC
+  return new Date(year, month - 1, day, 12, 0, 0).toISOString();
 }
 
 /**
- * Convierte cualquier ISO string → Date al mediodía local.
- * Permite mostrar correctamente tanto fechas guardadas con el
- * formato nuevo (mediodía local) como las antiguas (medianoche UTC).
+ * Converts any ISO string → Date at local noon.
+ * Correctly displays dates saved in both the new format (local noon)
+ * and the old format (UTC midnight).
  */
 function parseDateDisplay(isoStr) {
   if (!isoStr) return new Date();
-  const partesFecha = isoStr.split('T')[0].split('-').map(Number);
-  const [anio, mes, dia] = partesFecha;
-  if (!anio || !mes || !dia) return new Date(isoStr);
-  return new Date(anio, mes - 1, dia, 12, 0, 0);
+  const dateParts = isoStr.split('T')[0].split('-').map(Number);
+  const [year, month, day] = dateParts;
+  if (!year || !month || !day) return new Date(isoStr);
+  return new Date(year, month - 1, day, 12, 0, 0);
 }
 
 // ─────────────────────────────────────────────
-// RENDER PRINCIPAL
+// MAIN RENDER
 // ─────────────────────────────────────────────
 
 function renderDeudas() {
   const user   = Storage.getUser();
-  const deudas = Storage.getDeudas();
+  const debts  = Storage.getDebts();
   const symbol = user.symbol;
 
   const avatarEl = document.getElementById('deudas-avatar');
   if (avatarEl) avatarEl.textContent = user.name.charAt(0).toUpperCase();
 
-  const activas = deudas.filter(d => !d.paid);
-  const pagadas = deudas
+  const activeDebts = debts.filter(d => !d.paid);
+  const paidDebts   = debts
     .filter(d => d.paid)
     .sort((a, b) => new Date(b.paidDate) - new Date(a.paidDate));
 
-  const total   = activas.reduce((s, d) => s + d.amount, 0);
+  const total   = activeDebts.reduce((s, d) => s + d.amount, 0);
   const totalEl = document.getElementById('deudas-total');
   totalEl.textContent = `${symbol} ${total.toFixed(2)}`;
   totalEl.className   = total === 0 ? 'deudas-total sin-deudas' : 'deudas-total';
 
   document.getElementById('deudas-empty').style.display =
-    deudas.length === 0 ? 'block' : 'none';
+    debts.length === 0 ? 'block' : 'none';
 
   document.getElementById('deudas-activas-container').innerHTML =
-    activas.map(d => renderDeudaCard(d, symbol, false)).join('');
+    activeDebts.map(d => renderDebtCard(d, symbol, false)).join('');
 
-  const pagadasSection = document.getElementById('deudas-pagadas-section');
-  pagadasSection.style.display = pagadas.length > 0 ? 'block' : 'none';
+  const paidSection = document.getElementById('deudas-pagadas-section');
+  paidSection.style.display = paidDebts.length > 0 ? 'block' : 'none';
   document.getElementById('deudas-pagadas-container').innerHTML =
-    pagadas.map(d => renderDeudaCard(d, symbol, true)).join('');
+    paidDebts.map(d => renderDebtCard(d, symbol, true)).join('');
 }
 
 // ─────────────────────────────────────────────
-// TARJETA
+// CARD
 // ─────────────────────────────────────────────
 
-const ICONO_CALENDARIO = `
+const CALENDAR_ICON = `
   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
        viewBox="0 0 24 24" fill="none" stroke="currentColor"
        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -87,49 +87,49 @@ const ICONO_CALENDARIO = `
     <path d="M16 3v4M8 3v4M4 11h16M11 15h1M12 15v3"/>
   </svg>`;
 
-function renderDeudaCard(deuda, currency, pagada) {
-  // Fix 7: usar parseDateDisplay para evitar desfase UTC en display
-  const venceDate     = parseDateDisplay(deuda.dueDate);
-  const vencida       = !pagada && venceDate < new Date();
-  const venceFechaStr = venceDate.toLocaleDateString('es-PE', {
+function renderDebtCard(debt, currency, isPaid) {
+  // Fix 7: use parseDateDisplay to avoid UTC offset on display
+  const dueDate    = parseDateDisplay(debt.dueDate);
+  const isOverdue  = !isPaid && dueDate < new Date();
+  const dueDateStr = dueDate.toLocaleDateString('es-PE', {
     day: 'numeric', month: 'short', year: 'numeric'
   });
 
-  let fechaHtml = '';
+  let datesHtml = '';
 
-  if (pagada && deuda.paidDate) {
-    const pagadaDate = parseDateDisplay(deuda.paidDate);   // Fix 7
-    const pagadaStr  = pagadaDate.toLocaleDateString('es-PE', {
+  if (isPaid && debt.paidDate) {
+    const paidDate    = parseDateDisplay(debt.paidDate);   // Fix 7
+    const paidDateStr = paidDate.toLocaleDateString('es-PE', {
       day: 'numeric', month: 'short', year: 'numeric'
     });
-    const aTiempo = pagadaDate <= venceDate;
-    const tag = aTiempo
+    const onTime = paidDate <= dueDate;
+    const tag    = onTime
       ? `<span class="deuda-tag ok">A tiempo</span>`
       : `<span class="deuda-tag tarde">Con retraso</span>`;
 
-    fechaHtml = `
+    datesHtml = `
       <div class="deuda-fechas-pagada">
-        <div class="deuda-fecha">${ICONO_CALENDARIO} Fecha límite: ${venceFechaStr}</div>
-        <div class="deuda-fecha">${ICONO_CALENDARIO} Pagada el: ${pagadaStr} ${tag}</div>
+        <div class="deuda-fecha">${CALENDAR_ICON} Fecha límite: ${dueDateStr}</div>
+        <div class="deuda-fecha">${CALENDAR_ICON} Pagada el: ${paidDateStr} ${tag}</div>
       </div>`;
   } else {
-    fechaHtml = `
-      <div class="deuda-fecha ${vencida ? 'vencida' : ''}">
-        ${ICONO_CALENDARIO}
-        ${vencida ? 'Venció:' : 'Vence:'} ${venceFechaStr}
+    datesHtml = `
+      <div class="deuda-fecha ${isOverdue ? 'vencida' : ''}">
+        ${CALENDAR_ICON}
+        ${isOverdue ? 'Venció:' : 'Vence:'} ${dueDateStr}
       </div>`;
   }
 
   return `
-    <div class="deuda-card ${pagada ? 'pagada' : ''}">
+    <div class="deuda-card ${isPaid ? 'pagada' : ''}">
       <div class="deuda-card-header">
         <div>
-          <p class="deuda-persona">${deuda.person}</p>
-          ${deuda.description
-            ? `<p class="deuda-descripcion">${deuda.description}</p>`
+          <p class="deuda-persona">${debt.person}</p>
+          ${debt.description
+            ? `<p class="deuda-descripcion">${debt.description}</p>`
             : ''}
         </div>
-        <button class="btn-deuda-menu" onclick="opcionesDeuda('${deuda.id}')">
+        <button class="btn-deuda-menu" onclick="showDebtOptions('${debt.id}')">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
                viewBox="0 0 24 24" fill="none" stroke="currentColor"
                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -141,15 +141,15 @@ function renderDeudaCard(deuda, currency, pagada) {
         </button>
       </div>
 
-      <p class="deuda-monto ${pagada ? 'pagada' : ''}">
-        ${currency} ${deuda.amount.toFixed(2)}
+      <p class="deuda-monto ${isPaid ? 'pagada' : ''}">
+        ${currency} ${debt.amount.toFixed(2)}
       </p>
 
       <div class="deuda-card-footer">
-        ${fechaHtml}
-        ${!pagada ? `
+        ${datesHtml}
+        ${!isPaid ? `
           <div class="deuda-acciones">
-            <button class="btn-pagar" onclick="pagarDeuda('${deuda.id}')">Pagar</button>
+            <button class="btn-pagar" onclick="payDebt('${debt.id}')">Pagar</button>
           </div>
         ` : `
           <div class="deuda-pagada-badge">
@@ -167,71 +167,77 @@ function renderDeudaCard(deuda, currency, pagada) {
 }
 
 // ─────────────────────────────────────────────
-// MODAL OPCIONES
+// OPTIONS MODAL
 // ─────────────────────────────────────────────
 
-function opcionesDeuda(id) {
-  deudaOpcionesId = id;
-  const deuda  = Storage.getDeudas().find(d => d.id === id);
+function showDebtOptions(id) {
+  debtOptionsId = id;
+  const debt   = Storage.getDebts().find(d => d.id === id);
   const user   = Storage.getUser();
   const symbol = user.symbol;
 
-  const tituloEl = document.getElementById('modal-opciones-titulo');
-  tituloEl.textContent = deuda ? deuda.person : 'Opciones';
+  const titleEl = document.getElementById('modal-opciones-titulo');
+  titleEl.textContent = debt ? debt.person : 'Opciones';
 
-  let subtituloEl = document.getElementById('modal-opciones-subtitulo');
-  if (!subtituloEl) {
-    subtituloEl           = document.createElement('p');
-    subtituloEl.id        = 'modal-opciones-subtitulo';
-    subtituloEl.className = 'modal-subtitle';
-    tituloEl.insertAdjacentElement('afterend', subtituloEl);
+  let subtitleEl = document.getElementById('modal-opciones-subtitulo');
+  if (!subtitleEl) {
+    subtitleEl           = document.createElement('p');
+    subtitleEl.id        = 'modal-opciones-subtitulo';
+    subtitleEl.className = 'modal-subtitle';
+    titleEl.insertAdjacentElement('afterend', subtitleEl);
   }
-  if (deuda) {
-    const desc = deuda.description ? ` · ${deuda.description}` : '';
-    subtituloEl.textContent   = `${symbol} ${deuda.amount.toFixed(2)}${desc}`;
-    subtituloEl.style.display = 'block';
+  if (debt) {
+    const desc                  = debt.description ? ` · ${debt.description}` : '';
+    subtitleEl.textContent      = `${symbol} ${debt.amount.toFixed(2)}${desc}`;
+    subtitleEl.style.display    = 'block';
   } else {
-    subtituloEl.style.display = 'none';
+    subtitleEl.style.display = 'none';
   }
 
-  const botonesEl = document.getElementById('modal-opciones-botones');
-  botonesEl.innerHTML = deuda?.paid
+  const buttonsEl = document.getElementById('modal-opciones-botones');
+  buttonsEl.innerHTML = debt?.paid
     ? `
-      <button class="btn-primary btn-verde" onclick="editarDesdeOpciones()">
+      <button class="btn-primary btn-verde" onclick="editFromOptions()">
         Editar deuda
       </button>
-      <button class="btn-primary btn-eliminar-pago" onclick="eliminarPagoDesdeOpciones()">
+      <button class="btn-primary btn-eliminar-pago" onclick="removePaymentFromOptions()">
         Eliminar pago
       </button>
-      <button class="btn-primary btn-rojo" onclick="eliminarDeudaDesdeOpciones()">
+      <button class="btn-primary btn-rojo" onclick="deleteDebtFromOptions()">
         Eliminar deuda
       </button>
-      <button class="btn-ghost" onclick="cerrarModalOpciones()">Cancelar</button>`
+      <button class="btn-ghost" onclick="closeDebtOptions()">Cancelar</button>`
     : `
-      <button class="btn-primary btn-verde" onclick="editarDesdeOpciones()">
+      <button class="btn-primary btn-verde" onclick="editFromOptions()">
         Editar deuda
       </button>
-      <button class="btn-primary btn-rojo" onclick="eliminarDeudaDesdeOpciones()">
+      <button class="btn-primary btn-rojo" onclick="deleteDebtFromOptions()">
         Eliminar deuda
       </button>
-      <button class="btn-ghost" onclick="cerrarModalOpciones()">Cancelar</button>`;
+      <button class="btn-ghost" onclick="closeDebtOptions()">Cancelar</button>`;
 
   document.getElementById('modal-opciones-deuda').style.display = 'flex';
 }
 
-function editarDesdeOpciones() {
-  const id = deudaOpcionesId;
-  cerrarModalOpciones();
-  mostrarModalDeuda(id);
+// Alias for HTML onclick handlers
+const opcionesDeuda = showDebtOptions;
+
+function editFromOptions() {
+  const id = debtOptionsId;
+  closeDebtOptions();
+  showDebtModal(id);
 }
 
-// Fix 3: async function que usa AppConfirm ya corregido en toast.js
-async function eliminarPagoDesdeOpciones() {
-  const id = deudaOpcionesId;
-  cerrarModalOpciones();
+// Alias
+const editarDesdeOpciones = editFromOptions;
 
-  const deuda = Storage.getDeudas().find(d => d.id === id);
-  if (!deuda || !deuda.paid) return;
+// Fix 3: async function using corrected AppConfirm from toast.js
+async function removePaymentFromOptions() {
+  const id = debtOptionsId;
+  closeDebtOptions();
+
+  const debt = Storage.getDebts().find(d => d.id === id);
+  if (!debt || !debt.paid) return;
 
   const ok = await AppConfirm({
     titulo:    'Eliminar pago',
@@ -242,99 +248,119 @@ async function eliminarPagoDesdeOpciones() {
   });
   if (!ok) return;
 
-  if (deuda.transactionId) Storage.deleteTransaction(deuda.transactionId);
-  Storage.updateDeuda(id, { paid: false, paidDate: null, transactionId: null });
+  if (debt.transactionId) Storage.deleteTransaction(debt.transactionId);
+  Storage.updateDebt(id, { paid: false, paidDate: null, transactionId: null });
   renderDeudas();
   Toast.info('Pago eliminado', 'La deuda volvió a estado pendiente.');
 }
 
-// Fix 6: mismo fix que el anterior
-async function eliminarDeudaDesdeOpciones() {
-  const id = deudaOpcionesId;
-  cerrarModalOpciones();
+// Alias
+const eliminarPagoDesdeOpciones = removePaymentFromOptions;
 
-  const deuda = Storage.getDeudas().find(d => d.id === id);
-  if (!deuda) return;
+// Fix 6: same fix as above
+async function deleteDebtFromOptions() {
+  const id = debtOptionsId;
+  closeDebtOptions();
+
+  const debt = Storage.getDebts().find(d => d.id === id);
+  if (!debt) return;
 
   const ok = await AppConfirm({
     titulo:    'Eliminar deuda',
-    mensaje:   `Se eliminará la deuda con ${deuda.person} de forma permanente.${
-      deuda.paid ? ' El pago vinculado también se eliminará del historial.' : ''}`,
+    mensaje:   `Se eliminará la deuda con ${debt.person} de forma permanente.${
+      debt.paid ? ' El pago vinculado también se eliminará del historial.' : ''}`,
     tipo:      'danger',
     btnOk:     'Sí, eliminar',
     btnCancel: 'Cancelar'
   });
   if (!ok) return;
 
-  if (deuda.paid && deuda.transactionId) Storage.deleteTransaction(deuda.transactionId);
-  Storage.deleteDeuda(id);
+  if (debt.paid && debt.transactionId) Storage.deleteTransaction(debt.transactionId);
+  Storage.deleteDebt(id);
   renderDeudas();
-  Toast.success('Deuda eliminada', `La deuda con ${deuda.person} fue eliminada.`);
+  Toast.success('Deuda eliminada', `La deuda con ${debt.person} fue eliminada.`);
 }
 
-function cerrarModalOpciones() {
-  document.getElementById('modal-opciones-deuda').style.display = 'none';
-  deudaOpcionesId = null;
+// Alias
+const eliminarDeudaDesdeOpciones = deleteDebtFromOptions;
+
+function closeDebtOptions() {
+  closeModal('modal-opciones-deuda');
+  debtOptionsId = null;
 }
 
+// Alias
+const cerrarModalOpciones = closeDebtOptions;
+
 // ─────────────────────────────────────────────
-// MODAL PAGAR
+// PAY MODAL
 // ─────────────────────────────────────────────
 
-function pagarDeuda(id) {
-  deudaPagoId = id;
-  const deuda  = Storage.getDeudas().find(d => d.id === id);
-  if (!deuda) return;
+function payDebt(id) {
+  payingDebtId = id;
+  const debt   = Storage.getDebts().find(d => d.id === id);
+  if (!debt) return;
   const user   = Storage.getUser();
   const symbol = user.symbol;
   document.getElementById('modal-pago-texto').textContent =
-    `¿Marcar la deuda de ${deuda.person} ` +
-    `(${symbol} ${deuda.amount.toFixed(2)}) como pagada? ` +
+    `¿Marcar la deuda de ${debt.person} ` +
+    `(${symbol} ${debt.amount.toFixed(2)}) como pagada? ` +
     `Se registrará como gasto.`;
   document.getElementById('modal-confirmar-pago').style.display = 'flex';
 }
 
-function confirmarPago() {
-  if (!deudaPagoId) return;
-  const deuda = Storage.getDeudas().find(d => d.id === deudaPagoId);
-  if (!deuda) return;
+// Alias
+const pagarDeuda = payDebt;
 
-  const transaccion = {
-    id:       Date.now().toString(),
-    type:     'gasto',
-    amount:   deuda.amount,
+function confirmPayment() {
+  if (!payingDebtId) return;
+  const debt = Storage.getDebts().find(d => d.id === payingDebtId);
+  if (!debt) return;
+
+  const transaction = {
+    id: Date.now().toString(),
+    type: 'gasto',
+    amount: debt.amount,
     category: 'deuda',
-    date:     new Date().toISOString()
+    categoryLabel: 'Pago de deuda',
+    categoryIcon: 'deuda',
+    date: new Date().toISOString()
   };
 
-  Storage.addTransaction(transaccion);
-  Storage.updateDeuda(deudaPagoId, {
+  Storage.addTransaction(transaction);
+  Storage.updateDebt(payingDebtId, {
     paid:          true,
     paidDate:      new Date().toISOString(),
-    transactionId: transaccion.id
+    transactionId: transaction.id
   });
 
   const user   = Storage.getUser();
   const symbol = user.symbol;
-  cerrarModalPago();
+  closePayModal();
   renderDeudas();
   Toast.success(
     'Deuda saldada',
-    `Pago de ${symbol}${deuda.amount.toFixed(2)} a ${deuda.person} registrado.`
+    `Pago de ${symbol}${debt.amount.toFixed(2)} a ${debt.person} registrado.`
   );
 }
 
-function cerrarModalPago() {
-  document.getElementById('modal-confirmar-pago').style.display = 'none';
-  deudaPagoId = null;
+// Alias
+const confirmarPago = confirmPayment;
+
+function closePayModal() {
+  closeModal('modal-confirmar-pago');
+  payingDebtId = null;
 }
 
+// Alias
+const cerrarModalPago = closePayModal;
+
 // ─────────────────────────────────────────────
-// MODAL NUEVA / EDITAR DEUDA
+// NEW / EDIT DEBT MODAL
 // ─────────────────────────────────────────────
 
-function mostrarModalDeuda(id = null) {
-  deudaEditandoId = id;
+function showDebtModal(id = null) {
+  editingDebtId = id;
 
   ['deuda-input-monto', 'deuda-input-persona',
    'deuda-input-fecha', 'deuda-input-descripcion',
@@ -342,243 +368,249 @@ function mostrarModalDeuda(id = null) {
     const el = document.getElementById(elId);
     if (el) el.value = '';
   });
-  _deudaLimpiarErrores();
+  _clearDebtErrors();
 
-  // Fix 4: placeholder con símbolo dinámico de la moneda activa
-  const inputMonto = document.getElementById('deuda-input-monto');
-  if (inputMonto) {
+  // Fix 4: placeholder with dynamic symbol of the active currency
+  const amountInput = document.getElementById('deuda-input-monto');
+  if (amountInput) {
     const symbol = getCurrencySymbol();
-    inputMonto.placeholder = `${symbol} 0.00`;
+    amountInput.placeholder = `${symbol} 0.00`;
   }
 
-  const tituloEl      = document.getElementById('modal-deuda-titulo');
-  const subtituloEl   = document.getElementById('modal-deuda-subtitulo');
-  const fechaPagoWrap = document.getElementById('deuda-fecha-pago-wrap');
+  const titleEl       = document.getElementById('modal-deuda-titulo');
+  const subtitleEl    = document.getElementById('modal-deuda-subtitulo');
+  const paidDateWrap  = document.getElementById('deuda-fecha-pago-wrap');
 
   if (id) {
-    const deuda = Storage.getDeudas().find(d => d.id === id);
-    if (!deuda) return;
+    const debt = Storage.getDebts().find(d => d.id === id);
+    if (!debt) return;
 
-    if (deuda.paid) {
-      tituloEl.textContent = 'Editar Deuda Pagada';
-      if (subtituloEl) {
-        subtituloEl.textContent   = 'Solo puedes editar la descripción y la fecha real de pago.';
-        subtituloEl.style.display = 'block';
+    if (debt.paid) {
+      titleEl.textContent = 'Editar Deuda Pagada';
+      if (subtitleEl) {
+        subtitleEl.textContent   = 'Solo puedes editar la descripción y la fecha real de pago.';
+        subtitleEl.style.display = 'block';
       }
 
-      const inputMontoEl = document.getElementById('deuda-input-monto');
-      const inputPersona = document.getElementById('deuda-input-persona');
-      const inputFecha   = document.getElementById('deuda-input-fecha');
+      const inputAmountEl  = document.getElementById('deuda-input-monto');
+      const inputPersonEl  = document.getElementById('deuda-input-persona');
+      const inputDateEl    = document.getElementById('deuda-input-fecha');
 
-      inputMontoEl.value    = deuda.amount;
-      inputPersona.value    = deuda.person;
-      inputFecha.value      = deuda.dueDate.split('T')[0];
-      inputMontoEl.disabled = true;
-      inputPersona.disabled = true;
-      inputFecha.disabled   = true;
+      inputAmountEl.value    = debt.amount;
+      inputPersonEl.value    = debt.person;
+      inputDateEl.value      = debt.dueDate.split('T')[0];
+      inputAmountEl.disabled = true;
+      inputPersonEl.disabled = true;
+      inputDateEl.disabled   = true;
 
-      document.getElementById('deuda-input-descripcion').value = deuda.description || '';
+      document.getElementById('deuda-input-descripcion').value = debt.description || '';
 
-      if (fechaPagoWrap) fechaPagoWrap.style.display = 'block';
-      const inputFechaPago = document.getElementById('deuda-input-fecha-pago');
-      if (inputFechaPago && deuda.paidDate) {
-        inputFechaPago.value = deuda.paidDate.split('T')[0];
+      if (paidDateWrap) paidDateWrap.style.display = 'block';
+      const inputPaidDate = document.getElementById('deuda-input-fecha-pago');
+      if (inputPaidDate && debt.paidDate) {
+        inputPaidDate.value = debt.paidDate.split('T')[0];
       }
 
     } else {
-      tituloEl.textContent = 'Editar Deuda';
-      if (subtituloEl) subtituloEl.style.display = 'none';
+      titleEl.textContent = 'Editar Deuda';
+      if (subtitleEl) subtitleEl.style.display = 'none';
 
       ['deuda-input-monto', 'deuda-input-persona', 'deuda-input-fecha'].forEach(elId => {
         const el = document.getElementById(elId);
         if (el) el.disabled = false;
       });
 
-      document.getElementById('deuda-input-monto').value   = deuda.amount;
-      document.getElementById('deuda-input-persona').value = deuda.person;
-      document.getElementById('deuda-input-fecha').value   = deuda.dueDate.split('T')[0];
-      document.getElementById('deuda-input-descripcion').value = deuda.description || '';
+      document.getElementById('deuda-input-monto').value       = debt.amount;
+      document.getElementById('deuda-input-persona').value     = debt.person;
+      document.getElementById('deuda-input-fecha').value       = debt.dueDate.split('T')[0];
+      document.getElementById('deuda-input-descripcion').value = debt.description || '';
 
-      if (fechaPagoWrap) fechaPagoWrap.style.display = 'none';
+      if (paidDateWrap) paidDateWrap.style.display = 'none';
     }
 
   } else {
-    tituloEl.textContent = 'Nueva Deuda';
-    if (subtituloEl) subtituloEl.style.display = 'none';
+    titleEl.textContent = 'Nueva Deuda';
+    if (subtitleEl) subtitleEl.style.display = 'none';
 
     ['deuda-input-monto', 'deuda-input-persona', 'deuda-input-fecha'].forEach(elId => {
       const el = document.getElementById(elId);
       if (el) el.disabled = false;
     });
 
-    if (fechaPagoWrap) fechaPagoWrap.style.display = 'none';
+    if (paidDateWrap) paidDateWrap.style.display = 'none';
   }
 
   document.getElementById('modal-deuda').style.display = 'flex';
 }
 
-function cerrarModalDeuda() {
-  _deudaLimpiarErrores();
+// Aliases
+const mostrarModalDeuda = showDebtModal;
+
+function closeDebtModal() {
+  _clearDebtErrors();
   ['deuda-input-monto', 'deuda-input-persona', 'deuda-input-fecha'].forEach(elId => {
     const el = document.getElementById(elId);
     if (el) el.disabled = false;
   });
-  document.getElementById('modal-deuda').style.display = 'none';
-  deudaEditandoId = null;
+  closeModal('modal-deuda');
+  editingDebtId = null;
 }
 
-// ─── Helpers de error inline ─────────────────────────────────────
+// Alias
+const cerrarModalDeuda = closeDebtModal;
 
-const _DEUDA_ERROR_PAIRS = [
+// ─── Inline error helpers ─────────────────────────────────────────
+
+const _DEBT_ERROR_PAIRS = [
   ['deuda-input-monto',      'error-deuda-monto'],
   ['deuda-input-persona',    'error-deuda-persona'],
   ['deuda-input-fecha',      'error-deuda-fecha'],
   ['deuda-input-fecha-pago', 'error-deuda-fecha-pago']
 ];
 
-function _deudaLimpiarErrores() {
-  clearAllFieldErrors(_DEUDA_ERROR_PAIRS);
+function _clearDebtErrors() {
+  clearAllFieldErrors(_DEBT_ERROR_PAIRS);
 }
 
 // ─────────────────────────────────────────────
-// Fix 5: notificación inmediata si la nueva deuda ya está vencida
+// Fix 5: immediate notification if the new debt is already overdue
 // ─────────────────────────────────────────────
-function _notificarDeudaVencida(persona, monto, symbol) {
-  const hoy = new Date();
-  hoy.toDateString(); // solo para forzar evaluación
+function _notifyOverdueDebt(person, amount, symbol) {
+  const today = new Date();
+  today.toDateString(); // force evaluation
 
-  // Evita duplicar si ya se notificó hoy por esta persona+monto
-  const yaExiste = Storage.getNotifications().some(n =>
+  // Avoid duplicating if already notified today for this person+amount
+  const alreadyExists = Storage.getNotifications().some(n =>
     n.titulo === '🔴 Deuda con fecha vencida' &&
-    n.mensaje.includes(persona) &&
-    new Date(n.isoDate).toDateString() === hoy.toDateString()
+    n.mensaje.includes(person) &&
+    new Date(n.isoDate).toDateString() === today.toDateString()
   );
-  if (yaExiste) return;
+  if (alreadyExists) return;
 
   agregarNotificacion(
     NOTIF_TIPO.DANGER,
     '🔴 Deuda con fecha vencida',
-    `La deuda registrada con ${persona} (${symbol}${monto.toFixed(2)}) ya se encuentra vencida.`
+    `La deuda registrada con ${person} (${symbol}${amount.toFixed(2)}) ya se encuentra vencida.`
   );
 }
 
 // ─────────────────────────────────────────────
-// GUARDAR DEUDA
+// SAVE DEBT
 // ─────────────────────────────────────────────
 
 function guardarDeuda() {
-  _deudaLimpiarErrores();
+  _clearDebtErrors();
 
-  const descripcion = document.getElementById('deuda-input-descripcion').value.trim();
+  const description = document.getElementById('deuda-input-descripcion').value.trim();
 
-  if (deudaEditandoId) {
-    const deuda = Storage.getDeudas().find(d => d.id === deudaEditandoId);
-    if (!deuda) return;
+  if (editingDebtId) {
+    const debt = Storage.getDebts().find(d => d.id === editingDebtId);
+    if (!debt) return;
 
-    if (deuda.paid) {
-      const inputFechaPago = document.getElementById('deuda-input-fecha-pago');
-      const fechaPagoVal   = inputFechaPago ? inputFechaPago.value : '';
+    if (debt.paid) {
+      const inputPaidDate  = document.getElementById('deuda-input-fecha-pago');
+      const paidDateValue  = inputPaidDate ? inputPaidDate.value : '';
 
-      if (!fechaPagoVal) {
+      if (!paidDateValue) {
         setFieldError('deuda-input-fecha-pago', 'error-deuda-fecha-pago',
           'Ingresa la fecha real de pago');
         return;
       }
 
-      // Fix 7: parseFechaLocal (componentes locales)
-      const nuevaFechaPago = parseFechaLocal(fechaPagoVal);
+      // Fix 7: parseLocalDate (local components)
+      const newPaidDate = parseLocalDate(paidDateValue);
 
-      Storage.updateDeuda(deudaEditandoId, { description: descripcion, paidDate: nuevaFechaPago });
+      Storage.updateDebt(editingDebtId, { description, paidDate: newPaidDate });
 
-      if (deuda.transactionId) {
+      if (debt.transactionId) {
         const txs = Storage.getTransactions();
-        const idx = txs.findIndex(t => t.id === deuda.transactionId);
-        if (idx !== -1) { txs[idx].date = nuevaFechaPago; Storage.saveTransactions(txs); }
+        const idx = txs.findIndex(t => t.id === debt.transactionId);
+        if (idx !== -1) { txs[idx].date = newPaidDate; Storage.saveTransactions(txs); }
       }
 
     } else {
-      const monto   = parseFloat(document.getElementById('deuda-input-monto').value);
-      const persona = document.getElementById('deuda-input-persona').value.trim();
-      const fecha   = document.getElementById('deuda-input-fecha').value;
+      const amount  = parseFloat(document.getElementById('deuda-input-monto').value);
+      const person  = document.getElementById('deuda-input-persona').value.trim();
+      const date    = document.getElementById('deuda-input-fecha').value;
 
-      let hayError = false;
-      if (!monto || monto <= 0) {
+      let hasError = false;
+      if (!amount || amount <= 0) {
         setFieldError('deuda-input-monto', 'error-deuda-monto',
-          monto < 0 ? 'El monto no puede ser negativo' : 'Ingresa un monto válido mayor a 0');
-        hayError = true;
+          amount < 0 ? 'El monto no puede ser negativo' : 'Ingresa un monto válido mayor a 0');
+        hasError = true;
       }
-      if (!persona) {
+      if (!person) {
         setFieldError('deuda-input-persona', 'error-deuda-persona', 'El nombre es obligatorio');
-        hayError = true;
+        hasError = true;
       }
-      if (!fecha) {
+      if (!date) {
         setFieldError('deuda-input-fecha', 'error-deuda-fecha', 'Selecciona la fecha de vencimiento');
-        hayError = true;
+        hasError = true;
       }
-      if (hayError) return;
+      if (hasError) return;
 
-      const dueDateISO = parseFechaLocal(fecha);   // Fix 7
-      Storage.updateDeuda(deudaEditandoId, {
-        amount:      monto,
-        person:      persona,
+      const dueDateISO = parseLocalDate(date);   // Fix 7
+      Storage.updateDebt(editingDebtId, {
+        amount,
+        person,
         dueDate:     dueDateISO,
-        description: descripcion
+        description
       });
 
-      // Fix 5: notificar si la fecha editada ya está vencida
+      // Fix 5: notify if the edited date is already past
       if (new Date(dueDateISO) < new Date()) {
         const user = Storage.getUser();
-        _notificarDeudaVencida(persona, monto, user.symbol);
+        _notifyOverdueDebt(person, amount, user.symbol);
       }
     }
 
-    cerrarModalDeuda();
+    closeDebtModal();
     renderDeudas();
     Toast.success('Deuda actualizada', 'Los cambios fueron guardados correctamente.');
 
   } else {
-    const monto   = parseFloat(document.getElementById('deuda-input-monto').value);
-    const persona = document.getElementById('deuda-input-persona').value.trim();
-    const fecha   = document.getElementById('deuda-input-fecha').value;
+    const amount  = parseFloat(document.getElementById('deuda-input-monto').value);
+    const person  = document.getElementById('deuda-input-persona').value.trim();
+    const date    = document.getElementById('deuda-input-fecha').value;
 
-    let hayError = false;
-    if (!monto || monto <= 0) {
+    let hasError = false;
+    if (!amount || amount <= 0) {
       setFieldError('deuda-input-monto', 'error-deuda-monto',
-        monto < 0 ? 'El monto no puede ser negativo' : 'Ingresa un monto válido mayor a 0');
-      hayError = true;
+        amount < 0 ? 'El monto no puede ser negativo' : 'Ingresa un monto válido mayor a 0');
+      hasError = true;
     }
-    if (!persona) {
+    if (!person) {
       setFieldError('deuda-input-persona', 'error-deuda-persona', 'El nombre es obligatorio');
-      hayError = true;
+      hasError = true;
     }
-    if (!fecha) {
+    if (!date) {
       setFieldError('deuda-input-fecha', 'error-deuda-fecha', 'Selecciona la fecha de vencimiento');
-      hayError = true;
+      hasError = true;
     }
-    if (hayError) return;
+    if (hasError) return;
 
-    const dueDateISO = parseFechaLocal(fecha);   // Fix 7
+    const dueDateISO = parseLocalDate(date);   // Fix 7
 
-    Storage.addDeuda({
+    Storage.addDebt({
       id:          Date.now().toString(),
-      amount:      monto,
-      person:      persona,
+      amount,
+      person,
       dueDate:     dueDateISO,
-      description: descripcion,
+      description,
       paid:        false,
       date:        new Date().toISOString()
     });
 
-    // Fix 5: notificar inmediatamente si la fecha ya pasó
+    // Fix 5: notify immediately if the date has already passed
     if (new Date(dueDateISO) < new Date()) {
       const user = Storage.getUser();
-      _notificarDeudaVencida(persona, monto, user.symbol);
+      _notifyOverdueDebt(person, amount, user.symbol);
     }
 
-    cerrarModalDeuda();
+    closeDebtModal();
     renderDeudas();
 
     const user = Storage.getUser();
-    Toast.success('Deuda creada', `Deuda con ${persona} de ${user.symbol}${monto.toFixed(2)} registrada.`);
+    Toast.success('Deuda creada', `Deuda con ${person} de ${user.symbol}${amount.toFixed(2)} registrada.`);
   }
 }

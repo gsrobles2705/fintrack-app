@@ -1,7 +1,7 @@
 // notificaciones.js
 
 // ─────────────────────────────────────────────
-// ENUM: tipos de notificación
+// ENUM: notification types
 // ─────────────────────────────────────────────
 const NOTIF_TIPO = Object.freeze({
   SUCCESS: 'success',
@@ -12,7 +12,7 @@ const NOTIF_TIPO = Object.freeze({
 });
 
 // ─────────────────────────────────────────────
-// CONFIG visual por tipo
+// Visual config per type
 // ─────────────────────────────────────────────
 const NOTIF_CONFIG = {
   success: {
@@ -43,7 +43,7 @@ const NOTIF_CONFIG = {
 };
 
 // ─────────────────────────────────────────────
-// CORE: datos y persistencia
+// CORE: data and persistence
 // ─────────────────────────────────────────────
 
 /**
@@ -52,83 +52,83 @@ const NOTIF_CONFIG = {
  * @property {string}  tipo
  * @property {string}  titulo
  * @property {string}  mensaje
- * @property {string}  isoDate  - ISO 8601 del momento real del evento
+ * @property {string}  isoDate  - ISO 8601 of the actual event moment
  * @property {boolean} leido
  */
 
-function agregarNotificacion(tipo, titulo, mensaje, fechaOverride = null) {
-  const notif = {
+function agregarNotificacion(tipo, titulo, mensaje, dateOverride = null) {
+  const notification = {
     id:      `notif_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     tipo,
     titulo,
     mensaje,
-    // fechaOverride permite insertar notificaciones retroactivas con
-    // la fecha correcta del pasado (caso "días perdidos")
-    isoDate: fechaOverride ?? new Date().toISOString(),
+    // dateOverride allows inserting retroactive notifications with
+    // the correct past date (case: "missed days")
+    isoDate: dateOverride ?? new Date().toISOString(),
     leido:   false
   };
 
-  const lista = Storage.getNotifications();
-  lista.unshift(notif);
-  Storage.saveNotifications(lista);
+  const list = Storage.getNotifications();
+  list.unshift(notification);
+  Storage.saveNotifications(list);
 
-  // Actualiza badge de forma síncrona e inmediata
-  actualizarBadgeNotificaciones();
+  // Update badge synchronously and immediately
+  updateNotificationBadge();
 
-  // Notificación push nativa (no bloqueante)
-  _enviarPushNativa(titulo, mensaje);
+  // Native push notification (non-blocking)
+  _sendNativePush(titulo, mensaje);
 
-  return notif;
+  return notification;
 }
 
 function marcarComoLeida(id) {
-  const lista = Storage.getNotifications();
-  const idx   = lista.findIndex(n => n.id === id);
+  const list = Storage.getNotifications();
+  const idx  = list.findIndex(n => n.id === id);
   if (idx !== -1) {
-    lista[idx].leido = true;
-    Storage.saveNotifications(lista);
-    actualizarBadgeNotificaciones();
+    list[idx].leido = true;
+    Storage.saveNotifications(list);
+    updateNotificationBadge();
   }
 }
 
 function marcarTodasLeidas() {
-  const lista = Storage.getNotifications().map(n => ({ ...n, leido: true }));
-  Storage.saveNotifications(lista);
-  actualizarBadgeNotificaciones();
+  const list = Storage.getNotifications().map(n => ({ ...n, leido: true }));
+  Storage.saveNotifications(list);
+  updateNotificationBadge();
 }
 
 function eliminarNotificacion(id) {
-  const lista = Storage.getNotifications().filter(n => n.id !== id);
-  Storage.saveNotifications(lista);
-  actualizarBadgeNotificaciones();
+  const list = Storage.getNotifications().filter(n => n.id !== id);
+  Storage.saveNotifications(list);
+  updateNotificationBadge();
 }
 
-function contarNoLeidas() {
+function countUnread() {
   return Storage.getNotifications().filter(n => !n.leido).length;
 }
 
 // ─────────────────────────────────────────────
-// TIMESTAMP: misma lógica que actividad.js
+// TIMESTAMP: same logic as actividad.js
 // ─────────────────────────────────────────────
 
 /**
- * Formatea el tiempo transcurrido desde isoDate hasta ahora.
- * Usa la misma lógica de referencia que formatDate() en home.js:
+ * Formats the elapsed time since isoDate until now.
+ * Uses the same reference logic as formatDate() in home.js:
  *   - < 2 min  → "Ahora"
  *   - < 60 min → "Hace Xm"
  *   - < 24 h   → "Hace Xh"
- *   - ayer     → "Ayer"
- *   - resto    → "12 may" (mismo locale es-PE que actividad)
+ *   - yesterday → "Ayer"
+ *   - rest     → "12 may" (same es-PE locale as actividad)
  *
- * La comparación de "hoy" / "ayer" se hace contra medianoche local,
- * igual que en formatDate(), para evitar desfases de zona horaria.
+ * The "today" / "yesterday" comparison is done against local midnight,
+ * same as in formatDate(), to avoid timezone offsets.
  */
-function formatearTiempoNotif(isoDate) {
-  const fecha  = new Date(isoDate);
-  const ahora  = new Date();
-  const diffMs = ahora - fecha;
+function formatNotificationTime(isoDate) {
+  const date   = new Date(isoDate);
+  const now    = new Date();
+  const diffMs = now - date;
 
-  // Menos de un minuto con cincuenta y nueve segundos → "Ahora"
+  // Less than one minute fifty-nine seconds → "Ahora"
   if (diffMs < 120000)  return 'Ahora';
 
   const diffMin = Math.floor(diffMs / 60000);
@@ -137,32 +137,32 @@ function formatearTiempoNotif(isoDate) {
   const diffH = Math.floor(diffMs / 3600000);
   if (diffH < 24)   return `Hace ${diffH}h`;
 
-  // Compara fechas en medianoche local (igual que formatDate en home.js)
-  const hoy  = new Date();
-  hoy.setHours(0, 0, 0, 0);
+  // Compare dates at local midnight (same as formatDate in home.js)
+  const today  = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const ayer = new Date(hoy);
-  ayer.setDate(hoy.getDate() - 1);
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
 
-  const fechaDia = new Date(fecha);
-  fechaDia.setHours(0, 0, 0, 0);
+  const dateDay = new Date(date);
+  dateDay.setHours(0, 0, 0, 0);
 
-  if (fechaDia.getTime() === hoy.getTime())  return 'Hoy';
-  if (fechaDia.getTime() === ayer.getTime()) return 'Ayer';
+  if (dateDay.getTime() === today.getTime())     return 'Hoy';
+  if (dateDay.getTime() === yesterday.getTime()) return 'Ayer';
 
-  // Más de 2 días: formato corto idéntico al de actividad
-  return fecha.toLocaleDateString('es-PE', {
+  // More than 2 days: short format identical to actividad
+  return date.toLocaleDateString('es-PE', {
     day: 'numeric', month: 'short'
   });
 }
 
 // ─────────────────────────────────────────────
-// NOTIFICACIONES PUSH NATIVAS (Web Notifications API)
+// NATIVE PUSH NOTIFICATIONS (Web Notifications API)
 // ─────────────────────────────────────────────
 
 /**
- * Solicita permiso la primera vez y lo cachea.
- * Devuelve true si el permiso está concedido.
+ * Requests permission the first time and caches it.
+ * Returns true if permission is granted.
  */
 async function solicitarPermisoNotificaciones() {
   if (!('Notification' in window)) return false;
@@ -174,26 +174,26 @@ async function solicitarPermisoNotificaciones() {
 }
 
 /**
- * Lanza una notificación push nativa si el permiso está concedido.
- * No lanza si la app está en primer plano Y el documento es visible,
- * para no duplicar el feedback visual in-app.
+ * Sends a native push notification if permission is granted.
+ * Does not fire if the app is in the foreground AND the document is visible,
+ * to avoid duplicating in-app visual feedback.
  */
-async function _enviarPushNativa(titulo, mensaje) {
+async function _sendNativePush(title, message) {
   if (!('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
 
-  // Si el usuario tiene la app abierta y visible, no duplicar
+  // If the user has the app open and visible, don't duplicate
   if (document.visibilityState === 'visible') return;
 
   try {
-    new Notification(`FinTrack · ${titulo}`, {
-      body: mensaje,
-      icon: '/icons/icon-192.png',   // ajusta a tu ruta de icono PWA
-      badge: '/icons/badge-72.png',  // icono monocromático para Android
-      tag:  `fintrack-${Date.now()}` // evita colapsar notificaciones distintas
+    new Notification(`FinTrack · ${title}`, {
+      body:  message,
+      icon:  '/icons/icon-192.png',
+      badge: '/icons/badge-72.png',
+      tag:   `fintrack-${Date.now()}` // prevents collapsing distinct notifications
     });
   } catch (_) {
-    // Fallo silencioso: el entorno puede no soportar el constructor
+    // Silent failure: the environment may not support the constructor
   }
 }
 
@@ -204,14 +204,14 @@ async function _enviarPushNativa(titulo, mensaje) {
 function renderNotificaciones() {
   marcarTodasLeidas();
 
-  const lista     = Storage.getNotifications();
+  const list      = Storage.getNotifications();
   const container = document.getElementById('notificaciones-lista');
 
-  const ahora     = new Date();
-  const inicioDia = new Date(ahora);
-  inicioDia.setHours(0, 0, 0, 0);
+  const now       = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
 
-  if (lista.length === 0) {
+  if (list.length === 0) {
     container.innerHTML = `
       <div class="notif-empty">
         <div class="notif-empty-icon">
@@ -234,19 +234,19 @@ function renderNotificaciones() {
     return;
   }
 
-  const hoy   = lista.filter(n => new Date(n.isoDate) >= inicioDia);
-  const antes = lista.filter(n => new Date(n.isoDate) <  inicioDia);
+  const todayItems  = list.filter(n => new Date(n.isoDate) >= startOfDay);
+  const olderItems  = list.filter(n => new Date(n.isoDate) <  startOfDay);
 
   let html = '';
-  if (hoy.length   > 0) html += `<p class="notif-seccion-label">HOY</p>`   + hoy.map(renderNotifCard).join('');
-  if (antes.length > 0) html += `<p class="notif-seccion-label">ANTES</p>` + antes.map(renderNotifCard).join('');
+  if (todayItems.length  > 0) html += `<p class="notif-seccion-label">HOY</p>`   + todayItems.map(renderNotifCard).join('');
+  if (olderItems.length  > 0) html += `<p class="notif-seccion-label">ANTES</p>` + olderItems.map(renderNotifCard).join('');
 
   container.innerHTML = html;
 }
 
 function renderNotifCard(notif) {
-  const cfg    = NOTIF_CONFIG[notif.tipo] || NOTIF_CONFIG.system;
-  const tiempo = formatearTiempoNotif(notif.isoDate);
+  const cfg  = NOTIF_CONFIG[notif.tipo] || NOTIF_CONFIG.system;
+  const time = formatNotificationTime(notif.isoDate);
 
   return `
     <div class="notif-card ${notif.leido ? '' : 'unread'}"
@@ -260,7 +260,7 @@ function renderNotifCard(notif) {
       <div class="notif-body">
         <div class="notif-header-row">
           <p class="notif-title">${notif.titulo}</p>
-          <span class="notif-tiempo">${tiempo}</span>
+          <span class="notif-tiempo">${time}</span>
         </div>
         <p class="notif-message">${notif.mensaje}</p>
       </div>

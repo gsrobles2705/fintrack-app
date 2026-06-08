@@ -1,4 +1,4 @@
-// ui.js — Utilidades visuales globales
+// ui.js — Global visual utilities
 
 const ICON_BELL_NORMAL = `
   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"
@@ -23,24 +23,24 @@ const ICON_BELL_RINGING = `
   </svg>`;
 
 /**
- * Actualiza todos los .header-icon con el icono y badge correctos.
- * Se llama de forma síncrona desde cualquier punto de la app.
+ * Updates all .header-icon elements with the correct icon and badge.
+ * Called synchronously from anywhere in the app.
  */
-function actualizarBadgeNotificaciones() {
-  const noLeidas   = contarNoLeidas();
-  const usarRinging = noLeidas > 0;
+function updateNotificationBadge() {
+  const unreadCount  = countUnread();
+  const useRinging   = unreadCount > 0;
 
   document.querySelectorAll('.header-icon').forEach(el => {
-    // ── Icono de campana ──
+    // ── Bell icon ──
     let svgWrap = el.querySelector('.notif-bell-svg');
     if (!svgWrap) {
       svgWrap = document.createElement('span');
       svgWrap.className = 'notif-bell-svg';
       el.appendChild(svgWrap);
     }
-    svgWrap.innerHTML = usarRinging ? ICON_BELL_RINGING : ICON_BELL_NORMAL;
+    svgWrap.innerHTML = useRinging ? ICON_BELL_RINGING : ICON_BELL_NORMAL;
 
-    // ── Badge numérico ──
+    // ── Numeric badge ──
     let badge = el.querySelector('.notif-badge');
     if (!badge) {
       badge = document.createElement('span');
@@ -48,8 +48,8 @@ function actualizarBadgeNotificaciones() {
       el.appendChild(badge);
     }
 
-    if (noLeidas > 0) {
-      badge.textContent    = noLeidas > 9 ? '9+' : String(noLeidas);
+    if (unreadCount > 0) {
+      badge.textContent    = unreadCount > 9 ? '9+' : String(unreadCount);
       badge.style.display  = 'flex';
     } else {
       badge.style.display  = 'none';
@@ -57,16 +57,40 @@ function actualizarBadgeNotificaciones() {
   });
 }
 
-// ─── Reactivo ante cambios de localStorage desde otras pestañas ──
-// El evento 'storage' solo dispara en pestañas distintas a la que escribe,
-// por eso usamos también la llamada directa desde agregarNotificacion().
+// Kept as alias so legacy callers continue to work without changes in other files
+const actualizarBadgeNotificaciones = updateNotificationBadge;
+
+// ─── Reactive to localStorage changes from other tabs ──
+// The 'storage' event only fires in tabs other than the one writing,
+// so we also call this directly from addNotification().
 window.addEventListener('storage', e => {
   if (e.key === 'fintrack_notifications') {
-    actualizarBadgeNotificaciones();
+    updateNotificationBadge();
   }
 });
 
-// Inicializa el badge en el primer render
+// Initialise the badge on first render
 document.addEventListener('DOMContentLoaded', () => {
-  actualizarBadgeNotificaciones();
+  updateNotificationBadge();
 });
+
+// ─────────────────────────────────────────────────────────────────
+// MODAL CLOSE UTILITY
+// Plays the slide-down + fade-out animation before hiding.
+// Usage: closeModal('modal-id', optionalCallbackAfterClose)
+// ─────────────────────────────────────────────────────────────────
+function closeModal(id, callback) {
+  const overlay = typeof id === 'string' ? document.getElementById(id) : id;
+  if (!overlay) { if (callback) callback(); return; }
+
+  // Already closing — avoid double trigger
+  if (overlay.classList.contains('closing')) return;
+
+  overlay.classList.add('closing');
+  overlay.addEventListener('animationend', function handler() {
+    overlay.removeEventListener('animationend', handler);
+    overlay.classList.remove('closing');
+    overlay.style.display = 'none';
+    if (callback) callback();
+  }, { once: true });
+}

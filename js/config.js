@@ -1,18 +1,18 @@
 // config.js
 
-const PAISES = [
-  { country: 'Perú',      currency: 'PEN', symbol: 'S/',  monedaNombre: 'Sol peruano'         },
-  { country: 'EE.UU.',    currency: 'USD', symbol: '$',   monedaNombre: 'Dólar estadounidense' },
-  { country: 'España',    currency: 'EUR', symbol: '€',   monedaNombre: 'Euro'                 },
-  { country: 'México',    currency: 'MXN', symbol: '$',   monedaNombre: 'Peso mexicano'        },
-  { country: 'Colombia',  currency: 'COP', symbol: '$',   monedaNombre: 'Peso colombiano'      },
-  { country: 'Brasil',    currency: 'BRL', symbol: 'R$',  monedaNombre: 'Real brasileño'       },
-  { country: 'Chile',     currency: 'CLP', symbol: '$',   monedaNombre: 'Peso chileno'         },
-  { country: 'Argentina', currency: 'ARS', symbol: '$',   monedaNombre: 'Peso argentino'       }
+const COUNTRIES = [
+  { country: 'Perú',      currency: 'PEN', symbol: 'S/',  currencyName: 'Sol peruano'         },
+  { country: 'EE.UU.',    currency: 'USD', symbol: '$',   currencyName: 'Dólar estadounidense' },
+  { country: 'España',    currency: 'EUR', symbol: '€',   currencyName: 'Euro'                 },
+  { country: 'México',    currency: 'MXN', symbol: '$',   currencyName: 'Peso mexicano'        },
+  { country: 'Colombia',  currency: 'COP', symbol: '$',   currencyName: 'Peso colombiano'      },
+  { country: 'Brasil',    currency: 'BRL', symbol: 'R$',  currencyName: 'Real brasileño'       },
+  { country: 'Chile',     currency: 'CLP', symbol: '$',   currencyName: 'Peso chileno'         },
+  { country: 'Argentina', currency: 'ARS', symbol: '$',   currencyName: 'Peso argentino'       }
 ];
 
 /**
- * Devuelve el símbolo de moneda del usuario activo.
+ * Returns the currency symbol of the active user.
  * @returns {string}
  */
 function getCurrencySymbol() {

@@ -1,12 +1,12 @@
 // perfil.js
 
-let _paisSeleccionado      = null;
-let _monedaSeleccionada    = null;   // currency code (ej: 'COP') — independiente del país
-let _comboAbierto          = false;
-let _monedaDropdownAbierto = false;
+let _selectedCountry       = null;
+let _selectedCurrency      = null;   // currency code (e.g. 'COP') — independent of country
+let _countryComboOpen      = false;
+let _currencyDropdownOpen  = false;
 
 // ─────────────────────────────────────────────────────────────────
-// RENDER VISTA PERFIL
+// RENDER PROFILE VIEW
 // ─────────────────────────────────────────────────────────────────
 function renderPerfil() {
   const user = Storage.getUser();
@@ -17,14 +17,14 @@ function renderPerfil() {
   document.getElementById('perfil-nombre')
     .textContent = user.name;
 
-  const paisObj = PAISES.find(p => p.currency === user.currency) ?? PAISES[0];
-  document.getElementById('perfil-pais').textContent   = user.country ?? paisObj.country;
-  document.getElementById('perfil-moneda').textContent =
-    `${user.symbol} — ${paisObj.monedaNombre}`;
+  const countryObj = COUNTRIES.find(p => p.currency === user.currency) ?? COUNTRIES[0];
+  document.getElementById('perfil-pais').textContent    = user.country ?? countryObj.country;
+  document.getElementById('perfil-moneda').textContent  =
+    `${user.symbol} — ${countryObj.currencyName}`;
 }
 
 // ─────────────────────────────────────────────────────────────────
-// RENDER EDITAR PERFIL
+// RENDER EDIT PROFILE
 // ─────────────────────────────────────────────────────────────────
 function renderEditarPerfil() {
   const user = Storage.getUser();
@@ -33,205 +33,214 @@ function renderEditarPerfil() {
   document.getElementById('editar-avatar-letra').textContent =
     user.name.charAt(0).toUpperCase();
 
-  const inputNombre = document.getElementById('editar-input-nombre');
-  inputNombre.value = user.name;
+  const nameInput = document.getElementById('editar-input-nombre');
+  nameInput.value = user.name;
 
-  // Limpia errores previos al entrar
+  // Clear any previous errors on entry
   clearFieldError('editar-input-nombre', 'error-editar-nombre');
 
-  inputNombre.oninput = function () {
+  nameInput.oninput = function () {
     document.getElementById('editar-avatar-letra').textContent =
       this.value.charAt(0).toUpperCase() || '?';
-    // Limpia error en tiempo real mientras el usuario escribe
+    // Clear error in real time while the user types
     if (this.value.trim()) clearFieldError('editar-input-nombre', 'error-editar-nombre');
   };
 
-  _paisSeleccionado      = PAISES.find(p => p.country === user.country)
-                           ?? PAISES.find(p => p.currency === user.currency)
-                           ?? PAISES[0];
-  _monedaSeleccionada    = user.currency;
-  _comboAbierto          = false;
-  _monedaDropdownAbierto = false;
+  _selectedCountry   = COUNTRIES.find(p => p.country === user.country)
+                       ?? COUNTRIES.find(p => p.currency === user.currency)
+                       ?? COUNTRIES[0];
+  _selectedCurrency  = user.currency;
+  _countryComboOpen  = false;
+  _currencyDropdownOpen = false;
 
-  _initCombobox();
-  _renderMonedaDropdown();
+  _initCountryCombo();
+  _renderCurrencyDropdown();
 
-  document.addEventListener('mousedown', _cerrarComboSiAfuera);
-  document.addEventListener('mousedown', _cerrarMonedaSiAfuera);
+  document.addEventListener('mousedown', _closeCountryComboIfOutside);
+  document.addEventListener('mousedown', _closeCurrencyIfOutside);
 }
 
 // ─────────────────────────────────────────────────────────────────
-// COMBOBOX DE PAÍS
+// COUNTRY COMBOBOX
 // ─────────────────────────────────────────────────────────────────
-function _initCombobox() {
+function _initCountryCombo() {
   const input    = document.getElementById('combo-pais-input');
   const dropdown = document.getElementById('combo-pais-dropdown');
   if (!input || !dropdown) return;
 
-  input.value = _paisSeleccionado?.country ?? '';
+  input.value = _selectedCountry?.country ?? '';
 
-  const fresh = input.cloneNode(true);
-  input.parentNode.replaceChild(fresh, input);
+  const freshInput = input.cloneNode(true);
+  input.parentNode.replaceChild(freshInput, input);
 
-  fresh.onfocus = () => { fresh.value = ''; _abrirCombo(''); };
-  fresh.oninput = () => _abrirCombo(fresh.value.trim());
-  fresh.onblur  = () => {
-    setTimeout(() => { fresh.value = _paisSeleccionado?.country ?? ''; }, 150);
+  freshInput.onfocus = () => { freshInput.value = ''; _openCountryCombo(''); };
+  freshInput.oninput = () => _openCountryCombo(freshInput.value.trim());
+  freshInput.onblur  = () => {
+    setTimeout(() => { freshInput.value = _selectedCountry?.country ?? ''; }, 150);
   };
 }
 
-function _cerrarComboSiAfuera(e) {
+function _closeCountryComboIfOutside(e) {
   const wrapper = document.getElementById('combo-pais-wrapper');
-  if (wrapper && !wrapper.contains(e.target)) _cerrarCombo();
+  if (wrapper && !wrapper.contains(e.target)) _closeCountryCombo();
 }
 
-function _abrirCombo(query = '') {
+function _openCountryCombo(query = '') {
   const dropdown = document.getElementById('combo-pais-dropdown');
   if (!dropdown) return;
 
-  const q         = query.toLowerCase();
-  const filtrados = q
-    ? PAISES.filter(p =>
+  const q        = query.toLowerCase();
+  const filtered = q
+    ? COUNTRIES.filter(p =>
         p.country.toLowerCase().includes(q) ||
-        p.monedaNombre.toLowerCase().includes(q) ||
+        p.currencyName.toLowerCase().includes(q) ||
         p.symbol.toLowerCase().includes(q))
-    : [...PAISES];
+    : [...COUNTRIES];
 
-  dropdown.innerHTML = filtrados.length === 0
+  dropdown.innerHTML = filtered.length === 0
     ? `<div class="combo-no-results">Sin resultados</div>`
-    : filtrados.map(p => {
-        const activo = _paisSeleccionado?.currency === p.currency;
+    : filtered.map(p => {
+        const isActive = _selectedCountry?.currency === p.currency;
         return `
-          <div class="combo-option ${activo ? 'selected' : ''}"
-               onmousedown="seleccionarPaisCombo('${p.currency}')">
+          <div class="combo-option ${isActive ? 'selected' : ''}"
+               onmousedown="selectCountryCombo('${p.currency}')">
             <span class="combo-option-name">${p.country}</span>
-            <span class="combo-option-symbol ${activo ? 'active' : ''}">${p.symbol}</span>
+            <span class="combo-option-symbol ${isActive ? 'active' : ''}">${p.symbol}</span>
           </div>`;
       }).join('');
 
   dropdown.style.display = 'block';
-  _comboAbierto          = true;
+  _countryComboOpen      = true;
 }
 
-function _cerrarCombo() {
+function _closeCountryCombo() {
   const dropdown = document.getElementById('combo-pais-dropdown');
   if (dropdown) dropdown.style.display = 'none';
   const input = document.getElementById('combo-pais-input');
-  if (input && _paisSeleccionado) input.value = _paisSeleccionado.country;
-  _comboAbierto = false;
+  if (input && _selectedCountry) input.value = _selectedCountry.country;
+  _countryComboOpen = false;
 }
 
-function seleccionarPaisCombo(currency) {
-  _paisSeleccionado = PAISES.find(p => p.currency === currency);
+function selectCountryCombo(currency) {
+  _selectedCountry = COUNTRIES.find(p => p.currency === currency);
   const input = document.getElementById('combo-pais-input');
-  if (input) input.value = _paisSeleccionado.country;
-  _cerrarCombo();
-  _renderMonedaDropdown();
+  if (input) input.value = _selectedCountry.country;
+  _closeCountryCombo();
+  _renderCurrencyDropdown();
 }
 
+// Alias for HTML onmousedown handler
+const seleccionarPaisCombo = selectCountryCombo;
+
 // ─────────────────────────────────────────────────────────────────
-// CUSTOM DROPDOWN DE MONEDA
+// CURRENCY CUSTOM DROPDOWN
 // ─────────────────────────────────────────────────────────────────
-function _renderMonedaDropdown() {
+function _renderCurrencyDropdown() {
   const displayInput = document.getElementById('combo-moneda-display');
   const dropdown     = document.getElementById('combo-moneda-dropdown');
   if (!displayInput || !dropdown) return;
 
-  const monedaObj = PAISES.find(p => p.currency === _monedaSeleccionada) ?? PAISES[0];
-  displayInput.value = `${monedaObj.symbol} — ${monedaObj.monedaNombre}`;
+  const currencyObj = COUNTRIES.find(p => p.currency === _selectedCurrency) ?? COUNTRIES[0];
+  displayInput.value = `${currencyObj.symbol} — ${currencyObj.currencyName}`;
 
-  dropdown.innerHTML = PAISES.map(p => {
-    const activo = p.currency === _monedaSeleccionada;
+  dropdown.innerHTML = COUNTRIES.map(p => {
+    const isActive = p.currency === _selectedCurrency;
     return `
-      <div class="combo-option ${activo ? 'selected' : ''}"
-           onmousedown="seleccionarMonedaDropdown('${p.currency}')">
-        <span class="combo-option-name">${p.symbol} — ${p.monedaNombre}</span>
-        ${activo
+      <div class="combo-option ${isActive ? 'selected' : ''}"
+           onmousedown="selectCurrencyDropdown('${p.currency}')">
+        <span class="combo-option-name">${p.symbol} — ${p.currencyName}</span>
+        ${isActive
           ? `<span class="combo-option-symbol active">✓</span>`
           : `<span class="combo-option-symbol">${p.currency}</span>`}
       </div>`;
   }).join('');
 }
 
-function _toggleMonedaDropdown() {
-  _monedaDropdownAbierto ? _cerrarMonedaDropdown() : _abrirMonedaDropdown();
+function _toggleCurrencyDropdown() {
+  _currencyDropdownOpen ? _closeCurrencyDropdown() : _openCurrencyDropdown();
 }
 
-function _abrirMonedaDropdown() {
-  _cerrarCombo();
+// Alias for HTML onclick handler
+const _toggleMonedaDropdown = _toggleCurrencyDropdown;
+
+function _openCurrencyDropdown() {
+  _closeCountryCombo();
   const dropdown = document.getElementById('combo-moneda-dropdown');
   if (!dropdown) return;
-  _renderMonedaDropdown();
+  _renderCurrencyDropdown();
   dropdown.style.display = 'block';
-  _monedaDropdownAbierto = true;
+  _currencyDropdownOpen  = true;
 }
 
-function _cerrarMonedaDropdown() {
+function _closeCurrencyDropdown() {
   const dropdown = document.getElementById('combo-moneda-dropdown');
   if (dropdown) dropdown.style.display = 'none';
-  _monedaDropdownAbierto = false;
+  _currencyDropdownOpen = false;
 }
 
-function _cerrarMonedaSiAfuera(e) {
+function _closeCurrencyIfOutside(e) {
   const wrapper = document.getElementById('combo-moneda-wrapper');
-  if (wrapper && !wrapper.contains(e.target)) _cerrarMonedaDropdown();
+  if (wrapper && !wrapper.contains(e.target)) _closeCurrencyDropdown();
 }
 
-function seleccionarMonedaDropdown(currency) {
-  _monedaSeleccionada = currency;
-  _cerrarMonedaDropdown();
-  _renderMonedaDropdown();
+function selectCurrencyDropdown(currency) {
+  _selectedCurrency = currency;
+  _closeCurrencyDropdown();
+  _renderCurrencyDropdown();
 }
+
+// Alias for HTML onmousedown handler
+const seleccionarMonedaDropdown = selectCurrencyDropdown;
 
 // ─────────────────────────────────────────────────────────────────
-// GUARDAR EDICIÓN — inline error en nombre + toast de confirmación
+// SAVE EDIT — inline name error + confirmation toast
 // ─────────────────────────────────────────────────────────────────
 function guardarEdicion() {
-  const nombre = document.getElementById('editar-input-nombre').value.trim();
+  const name = document.getElementById('editar-input-nombre').value.trim();
 
-  // Limpia errores previos
+  // Clear previous errors
   clearFieldError('editar-input-nombre', 'error-editar-nombre');
 
-  let hayError = false;
+  let hasError = false;
 
-  if (!nombre) {
+  if (!name) {
     setFieldError('editar-input-nombre', 'error-editar-nombre',
       'El nombre no puede estar vacío');
-    hayError = true;
+    hasError = true;
   }
 
-  if (!_paisSeleccionado) {
+  if (!_selectedCountry) {
     Toast.error('País no seleccionado', 'Por favor elige tu país de residencia.');
-    hayError = true;
+    hasError = true;
   }
 
-  if (hayError) return;
+  if (hasError) return;
 
-  const monedaObj = PAISES.find(p => p.currency === _monedaSeleccionada)
-                    ?? _paisSeleccionado;
+  const currencyObj = COUNTRIES.find(p => p.currency === _selectedCurrency)
+                      ?? _selectedCountry;
 
   const user = Storage.getUser();
   Storage.saveUser({
     ...user,
-    name:     nombre,
-    country:  _paisSeleccionado.country,
-    currency: monedaObj.currency,
-    symbol:   monedaObj.symbol
+    name,
+    country:  _selectedCountry.country,
+    currency: currencyObj.currency,
+    symbol:   currencyObj.symbol
   });
 
-  _limpiarListeners();
+  _cleanupListeners();
 
-  // Toast de éxito antes de navegar
+  // Success toast before navigating
   Toast.success('Perfil actualizado', 'Los cambios se guardaron correctamente.');
 
   navigate(SCREENS.PERFIL);
 }
 
 // ─────────────────────────────────────────────────────────────────
-// CERRAR SESIÓN — confirm in-app en lugar de confirm() nativo
+// SIGN OUT — in-app confirm instead of native confirm()
 // ─────────────────────────────────────────────────────────────────
 async function cerrarSesion() {
-  const confirmado = await AppConfirm({
+  const confirmed = await AppConfirm({
     titulo:    'Cerrar sesión',
     mensaje:   'Se eliminarán todos tus datos locales. Esta acción no se puede deshacer.',
     tipo:      'danger',
@@ -239,17 +248,17 @@ async function cerrarSesion() {
     btnCancel: 'Cancelar'
   });
 
-  if (!confirmado) return;
+  if (!confirmed) return;
 
-  _limpiarListeners();
+  _cleanupListeners();
   Storage.clearAll();
   navigate(SCREENS.ONBOARDING);
 }
 
 // ─────────────────────────────────────────────────────────────────
-// UTILIDAD INTERNA
+// INTERNAL UTILITY
 // ─────────────────────────────────────────────────────────────────
-function _limpiarListeners() {
-  document.removeEventListener('mousedown', _cerrarComboSiAfuera);
-  document.removeEventListener('mousedown', _cerrarMonedaSiAfuera);
+function _cleanupListeners() {
+  document.removeEventListener('mousedown', _closeCountryComboIfOutside);
+  document.removeEventListener('mousedown', _closeCurrencyIfOutside);
 }

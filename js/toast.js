@@ -1,9 +1,9 @@
 // toast.js
-// Sistema global de mensajes in-app.
-// Reemplaza completamente alert(), confirm() y prompt() nativos.
+// Global in-app messaging system.
+// Completely replaces native alert(), confirm() and prompt().
 
 // ─────────────────────────────────────────────
-// ÍCONOS SVG INTERNOS
+// INTERNAL SVG ICONS
 // ─────────────────────────────────────────────
 const _TOAST_ICONS = {
   success: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
@@ -47,7 +47,7 @@ const _TOAST_ICONS = {
 };
 
 // ─────────────────────────────────────────────
-// CONTENEDOR — se inyecta una sola vez en el DOM
+// CONTAINER — injected once into the DOM
 // ─────────────────────────────────────────────
 function _getToastContainer() {
   let c = document.getElementById('toast-container');
@@ -60,31 +60,77 @@ function _getToastContainer() {
 }
 
 // ─────────────────────────────────────────────
-// API PÚBLICA: showToast(tipo, titulo, mensaje?, duracion?)
+// PUBLIC API: showToast(type, title, message?, duration?)
 //
-// tipo     : 'success' | 'error' | 'warning' | 'info'
-// titulo   : string  — texto principal (negrita)
-// mensaje  : string? — texto secundario opcional
-// duracion : number? — ms antes de desaparecer (default 3000)
+// type     : 'success' | 'error' | 'warning' | 'info'
+// title    : string  — main text (bold)
+// message  : string? — optional secondary text
+// duration : number? — ms before dismissal (default 3000)
 // ─────────────────────────────────────────────
-function showToast(tipo, titulo, mensaje = '', duracion = 3000) {
+function showToast(type, title, message = '', duration = 3000) {
   const container = _getToastContainer();
-
   const toast = document.createElement('div');
-  toast.className = `toast toast-${tipo}`;
+  toast.className = `toast toast-${type}`;
   toast.innerHTML = `
     <div class="toast-icon">
-      ${_TOAST_ICONS[tipo] || _TOAST_ICONS.info}
+      ${_TOAST_ICONS[type] || _TOAST_ICONS.info}
     </div>
     <div class="toast-body">
-      <p class="toast-title">${titulo}</p>
-      ${mensaje ? `<p class="toast-msg">${mensaje}</p>` : ''}
+      <p class="toast-title">${title}</p>
+      ${message ? `<p class="toast-msg">${message}</p>` : ''}
     </div>`;
 
   container.appendChild(toast);
 
-  // Auto-dismiss
-  setTimeout(() => _dismissToast(toast), duracion);
+  // --- SWIPE TO DISMISS ---
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isSwiping = false;
+  const SWIPE_THRESHOLD = 60; // px
+
+  const onTouchStart = (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isSwiping = false;
+    toast.style.transition = 'transform 0.15s ease';
+  };
+
+  const onTouchMove = (e) => {
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+      e.preventDefault();   // evitar scroll vertical mientras se desliza horizontalmente
+      isSwiping = true;
+      toast.style.transform = `translateX(${dx}px)`;
+      toast.style.opacity = `${1 - Math.min(Math.abs(dx) / (SWIPE_THRESHOLD * 1.5), 1)}`;
+    }
+  };
+
+  const onTouchEnd = (e) => {
+    if (!isSwiping) return;
+    const endX = e.changedTouches[0].clientX;
+    const dx = endX - touchStartX;
+    if (Math.abs(dx) >= SWIPE_THRESHOLD) {
+      // Swipe completado: eliminar toast inmediatamente
+      _dismissToast(toast);
+    } else {
+      // Volver a posición original
+      toast.style.transform = '';
+      toast.style.opacity = '';
+    }
+    toast.style.transition = '';
+    toast.removeEventListener('touchstart', onTouchStart);
+    toast.removeEventListener('touchmove', onTouchMove);
+    toast.removeEventListener('touchend', onTouchEnd);
+  };
+
+  toast.addEventListener('touchstart', onTouchStart, { passive: false });
+  toast.addEventListener('touchmove', onTouchMove, { passive: false });
+  toast.addEventListener('touchend', onTouchEnd);
+  // --------------------------------------------------
+
+  // Auto-dismiss después de duración (mantenido)
+  setTimeout(() => _dismissToast(toast), duration);
 }
 
 function _dismissToast(toast) {
@@ -93,25 +139,25 @@ function _dismissToast(toast) {
   toast.addEventListener('animationend', () => toast.remove(), { once: true });
 }
 
-// Atajos semánticos
+// Semantic shorthand methods
 const Toast = {
-  success: (titulo, msg, ms)  => showToast('success', titulo, msg, ms),
-  error:   (titulo, msg, ms)  => showToast('error',   titulo, msg, ms),
-  warning: (titulo, msg, ms)  => showToast('warning', titulo, msg, ms),
-  info:    (titulo, msg, ms)  => showToast('info',    titulo, msg, ms),
+  success: (title, msg, ms)  => showToast('success', title, msg, ms),
+  error:   (title, msg, ms)  => showToast('error',   title, msg, ms),
+  warning: (title, msg, ms)  => showToast('warning', title, msg, ms),
+  info:    (title, msg, ms)  => showToast('info',    title, msg, ms),
 };
 
 // ─────────────────────────────────────────────
-// CONFIRM IN-APP — reemplaza confirm() nativo
+// IN-APP CONFIRM — replaces native confirm()
 //
-// Devuelve una Promise<boolean>.
+// Returns a Promise<boolean>.
 //
-// Uso:
+// Usage:
 //   const ok = await AppConfirm({
-//     titulo:  '¿Cerrar sesión?',
-//     mensaje: 'Se borrarán todos tus datos.',
-//     tipo:    'danger',           // 'danger' | 'warning'
-//     btnOk:   'Sí, cerrar sesión',
+//     titulo:    '¿Cerrar sesión?',
+//     mensaje:   'Se borrarán todos tus datos.',
+//     tipo:      'danger',           // 'danger' | 'warning'
+//     btnOk:     'Sí, cerrar sesión',
 //     btnCancel: 'Cancelar'
 //   });
 //   if (ok) { ... }
@@ -141,7 +187,7 @@ const _CONFIRM_ICONS = {
 
 function AppConfirm({ titulo, mensaje, tipo = 'danger', btnOk = 'Confirmar', btnCancel = 'Cancelar' }) {
   return new Promise(resolve => {
-    // Elimina overlay previo si lo hay
+    // Remove any existing overlay
     document.getElementById('confirm-overlay')?.remove();
 
     const overlay = document.createElement('div');
@@ -161,28 +207,26 @@ function AppConfirm({ titulo, mensaje, tipo = 'danger', btnOk = 'Confirmar', btn
     document.body.appendChild(overlay);
 
     /*
-     * FIX 3 & 6 — Crash al cerrar el diálogo de confirmación.
+     * FIX 3 & 6 — Crash when closing the confirmation dialog.
      *
-     * BUG ORIGINAL: close() llamaba resolve(result) ANTES de que
-     * animationend eliminara el overlay del DOM.  El overlay tiene
-     * position:fixed; inset:0 (pantalla completa) y z-index:10000,
-     * de modo que bloqueaba TODOS los eventos táctiles/click durante
-     * los 150 ms de animación de salida.  Si animationend nunca
-     * disparaba (timing incierto según el navegador), el overlay
-     * quedaba para siempre → app congelada.
+     * ORIGINAL BUG: close() called resolve(result) BEFORE animationend
+     * removed the overlay from the DOM. The overlay has position:fixed;
+     * inset:0 (full-screen) and z-index:10000, blocking ALL touch/click
+     * events during the 150ms exit animation. If animationend never fired
+     * (uncertain timing per browser), the overlay stayed forever → frozen app.
      *
-     * FIX: eliminar el overlay de forma síncrona ANTES de resolver
-     * la Promise, garantizando que la UI quede libre al instante.
+     * FIX: remove the overlay synchronously BEFORE resolving the Promise,
+     * ensuring the UI is freed immediately.
      */
     const close = (result) => {
-      overlay.remove();   // síncrono: libera la UI inmediatamente
-      resolve(result);    // luego resuelve para que el caller continúe
+      overlay.remove();   // synchronous: frees the UI immediately
+      resolve(result);    // then resolve so the caller can continue
     };
 
     overlay.querySelector('#confirm-btn-ok').onclick     = () => close(true);
     overlay.querySelector('#confirm-btn-cancel').onclick = () => close(false);
 
-    // Tap en el fondo cierra con false
+    // Tap on the backdrop closes with false
     overlay.addEventListener('click', e => {
       if (e.target === overlay) close(false);
     });
@@ -190,17 +234,16 @@ function AppConfirm({ titulo, mensaje, tipo = 'danger', btnOk = 'Confirmar', btn
 }
 
 // ─────────────────────────────────────────────
-// HELPERS DE VALIDACIÓN INLINE
-// Reutilizados por todos los módulos para
-// marcar/desmarcar errores en inputs de forma
-// consistente y sin código duplicado.
+// INLINE VALIDATION HELPERS
+// Reused by all modules to mark/unmark errors
+// on inputs in a consistent, non-duplicated way.
 // ─────────────────────────────────────────────
 
 /**
- * Marca un campo como inválido y muestra su mensaje de error.
- * @param {string} inputId   — id del <input>
- * @param {string} errorId   — id del <div class="input-error-msg">
- * @param {string} [msg]     — texto opcional que sobreescribe el contenido del div
+ * Marks a field as invalid and shows its error message.
+ * @param {string} inputId   — id of the <input>
+ * @param {string} errorId   — id of the <div class="input-error-msg">
+ * @param {string} [msg]     — optional text that overwrites the div content
  */
 function setFieldError(inputId, errorId, msg) {
   const input = document.getElementById(inputId);
@@ -210,14 +253,14 @@ function setFieldError(inputId, errorId, msg) {
   input.classList.add('input-invalid');
   err.classList.add('visible');
   if (msg) {
-    // Conserva el SVG si existe; actualiza solo el <span> de texto
+    // Preserve any existing SVG; only update the text <span>
     const span = err.querySelector('span') ?? err;
     span.textContent = msg;
   }
 }
 
 /**
- * Elimina el estado de error de un campo.
+ * Removes the error state from a field.
  * @param {string} inputId
  * @param {string} errorId
  */
@@ -229,7 +272,7 @@ function clearFieldError(inputId, errorId) {
 }
 
 /**
- * Limpia todos los pares [inputId, errorId] de un array.
+ * Clears all [inputId, errorId] pairs in an array.
  * @param {Array<[string,string]>} pairs
  */
 function clearAllFieldErrors(pairs) {

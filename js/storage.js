@@ -1,34 +1,28 @@
 // storage.js
-// Responsabilidad: toda la comunicación con localStorage
-// Si algo necesita guardarse o leerse, pasa por aquí
+// Responsibility: all communication with localStorage
 
 const Storage = {
 
-  // ---- USUARIO ----
+  // ---- USER ----
 
   saveUser(userData) {
-    // Convierte el objeto a texto y lo guarda
-    localStorage.setItem('fintrack_user', 
-      JSON.stringify(userData));
+    localStorage.setItem('fintrack_user', JSON.stringify(userData));
   },
 
-  // Agrega getUser con fallback de symbol para usuarios viejos
   getUser() {
     const data = localStorage.getItem('fintrack_user');
     if (!data) return null;
     const user = JSON.parse(data);
-    // Retrocompatibilidad: usuarios que solo tenían currency="S/"
     if (!user.symbol) {
       user.symbol = user.currency === '$' ? '$' : 'S/';
     }
     return user;
   },
 
-  // ---- TRANSACCIONES ----
+  // ---- TRANSACTIONS ----
 
   saveTransactions(transactions) {
-    localStorage.setItem('fintrack_transactions',
-      JSON.stringify(transactions));
+    localStorage.setItem('fintrack_transactions', JSON.stringify(transactions));
   },
 
   getTransactions() {
@@ -38,21 +32,19 @@ const Storage = {
 
   addTransaction(transaction) {
     const transactions = this.getTransactions();
-    transactions.unshift(transaction); // Agrega al inicio
+    transactions.unshift(transaction);
     this.saveTransactions(transactions);
   },
 
   deleteTransaction(id) {
     const transactions = this.getTransactions();
-    const filtered = transactions.filter(t => t.id !== id);
-    this.saveTransactions(filtered);
+    this.saveTransactions(transactions.filter(t => t.id !== id));
   },
 
-  // ---- OBJETIVO SEMANAL ----
+  // ---- WEEKLY GOAL ----
 
   saveGoal(goal) {
-    localStorage.setItem('fintrack_goal',
-      JSON.stringify(goal));
+    localStorage.setItem('fintrack_goal', JSON.stringify(goal));
   },
 
   getGoal() {
@@ -60,11 +52,10 @@ const Storage = {
     return data ? JSON.parse(data) : null;
   },
 
-  // ---- PRESUPUESTO DIARIO ----
+  // ---- DAILY BUDGET ----
 
   saveDailyBudget(amount) {
-    localStorage.setItem('fintrack_daily_budget',
-      JSON.stringify(amount));
+    localStorage.setItem('fintrack_daily_budget', JSON.stringify(amount));
   },
 
   getDailyBudget() {
@@ -72,50 +63,125 @@ const Storage = {
     return data ? JSON.parse(data) : null;
   },
 
-  // ---- DEUDAS ----
+  // ---- DEBTS ----
 
-  saveDeudas(deudas) {
-    localStorage.setItem('fintrack_deudas',
-      JSON.stringify(deudas));
+  saveDebts(debts) {
+    localStorage.setItem('fintrack_deudas', JSON.stringify(debts));
   },
 
-  getDeudas() {
+  getDebts() {
     const data = localStorage.getItem('fintrack_deudas');
     return data ? JSON.parse(data) : [];
   },
 
-  addDeuda(deuda) {
-    const deudas = this.getDeudas();
-    deudas.unshift(deuda);
-    this.saveDeudas(deudas);
+  addDebt(debt) {
+    const debts = this.getDebts();
+    debts.unshift(debt);
+    this.saveDebts(debts);
   },
 
-  updateDeuda(id, changes) {
-    const deudas = this.getDeudas();
-    const idx = deudas.findIndex(d => d.id === id);
-    if (idx !== -1) deudas[idx] = { ...deudas[idx], ...changes };
-    this.saveDeudas(deudas);
+  updateDebt(id, changes) {
+    const debts = this.getDebts();
+    const idx = debts.findIndex(d => d.id === id);
+    if (idx !== -1) debts[idx] = { ...debts[idx], ...changes };
+    this.saveDebts(debts);
   },
 
-  deleteDeuda(id) {
-    const deudas = this.getDeudas().filter(d => d.id !== id);
-    this.saveDeudas(deudas);
+  deleteDebt(id) {
+    this.saveDebts(this.getDebts().filter(d => d.id !== id));
   },
 
-  // ---- NOTIFICACIONES ----
+  // ---- NOTIFICATIONS ----
 
   saveNotifications(notifications) {
-    localStorage.setItem('fintrack_notifications',
-      JSON.stringify(notifications));
+    localStorage.setItem('fintrack_notifications', JSON.stringify(notifications));
   },
 
   getNotifications() {
     const data = localStorage.getItem('fintrack_notifications');
-    // Estado inicial: array vacío (nunca null)
     return data ? JSON.parse(data) : [];
   },
 
-  // ---- UTILIDAD ----
+  // ---- CUSTOM CATEGORIES ----
+  //
+  // Stored structure:
+  // {
+  //   expenses: [{ id, label, iconKey, custom: true }, ...],
+  //   income:   [{ id, label, iconKey, custom: true }, ...]
+  // }
+  //
+  // System categories (food, transport, etc.) are NOT stored here —
+  // they are defined in categorias.js and merged at runtime.
+  // Only custom ones are persisted.
+
+  saveCustomCategories(data) {
+    localStorage.setItem('fintrack_categorias_custom', JSON.stringify(data));
+  },
+
+  getCustomCategories() {
+    const data = localStorage.getItem('fintrack_categorias_custom');
+    return data ? JSON.parse(data) : { gastos: [], ingresos: [] };
+  },
+
+  // ---- QUICK AMOUNTS ----
+
+  saveQuickAmounts(amounts) {
+    localStorage.setItem('fintrack_quick_amounts', JSON.stringify(amounts));
+  },
+
+  getQuickAmounts() {
+    const data = localStorage.getItem('fintrack_quick_amounts');
+    return data ? JSON.parse(data) : [2, 5, 10, 20, 50, 25];
+  },
+
+  // ---- ACTIVE CATEGORIES ----
+  saveActiveCategories(type, ids) {
+    localStorage.setItem(`fintrack_active_${type}`, JSON.stringify(ids));
+  },
+  getActiveCategories(type) {
+    const stored = localStorage.getItem(`fintrack_active_${type}`);
+    return stored ? JSON.parse(stored) : null;
+  },
+
+  // ---- MIGRATION for old transactions (add categoryLabel and categoryIcon) ----
+  migrateTransactions() {
+    try {
+      const transactions = this.getTransactions();
+      let changed = false;
+      for (let t of transactions) {
+        if (!t.categoryLabel && t.category) {
+          let label, iconKey;
+          if (t.category === 'capital_inicial') {
+            label = 'Capital inicial';
+            iconKey = 'capital_inicial';
+          } else if (t.category === 'deuda') {
+            label = 'Pago de deuda';
+            iconKey = 'deuda';
+          } else if (t.category.startsWith('otro_libre:')) {
+            label = t.category.slice('otro_libre:'.length);
+            iconKey = 'categoria';
+          } else {
+            const def = window.getCategoryDefinition ? window.getCategoryDefinition(t.category) : null;
+            if (def) {
+              label = def.label;
+              iconKey = def.iconKey;
+            } else {
+              label = t.category.replace(/_/g, ' ');
+              iconKey = 'categoria';
+            }
+          }
+          t.categoryLabel = label;
+          t.categoryIcon = iconKey;
+          changed = true;
+        }
+      }
+      if (changed) this.saveTransactions(transactions);
+    } catch (err) {
+      console.error('Error en migrateTransactions:', err);
+    }
+  },
+
+  // ---- UTILITY ----
 
   clearAll() {
     localStorage.removeItem('fintrack_user');
@@ -124,5 +190,7 @@ const Storage = {
     localStorage.removeItem('fintrack_deudas');
     localStorage.removeItem('fintrack_daily_budget');
     localStorage.removeItem('fintrack_notifications');
+    localStorage.removeItem('fintrack_categorias_custom');
+    localStorage.removeItem('fintrack_quick_amounts');
   }
 };
