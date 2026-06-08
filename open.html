@@ -313,17 +313,34 @@
     <!-- ══ ESTADO A: Android no-Chrome → guía + intent:// ══ -->
     <div id="view-android-guide" style="display:none">
       <div class="browser-wrap">
-        <!-- Chrome SVG inline -->
-        <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="36" cy="36" r="36" fill="#fff"/>
-          <path d="M36 14 A22 22 0 0 1 57.1 25H36Z" fill="#EA4335"/>
-          <path d="M57.1 25 A22 22 0 0 1 57.1 47L41 36Z" fill="#FBBC05"/>
-          <path d="M57.1 47 A22 22 0 0 1 14 47L30 36Z" fill="#34A853"/>
-          <path d="M14 47 A22 22 0 0 1 14 25L30 36Z" fill="#EA4335"/>
-          <path d="M14 25 A22 22 0 0 1 36 14L36 26Z" fill="#4285F4"/>
-          <circle cx="36" cy="36" r="12" fill="#fff"/>
-          <circle cx="36" cy="36" r="10" fill="#4285F4"/>
-          <circle cx="36" cy="36" r="7"  fill="#fff"/>
+        <!-- Chrome logo oficial a color -->
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Sombras/base -->
+          <circle cx="50" cy="50" r="50" fill="#fff"/>
+          <!-- Sector rojo (superior) -->
+          <path d="M50 50 L50 16 A34 34 0 0 1 79.44 33Z" fill="#EA4335"/>
+          <!-- Sector amarillo (inferior derecho) -->
+          <path d="M50 50 L79.44 33 A34 34 0 0 1 79.44 67Z" fill="#FBBC05"/>
+          <!-- Sector verde (inferior izquierdo) -->
+          <path d="M50 50 L79.44 67 A34 34 0 0 1 20.56 67Z" fill="#34A853"/>
+          <!-- Sector azul (izquierdo superior) -->
+          <path d="M50 50 L20.56 67 A34 34 0 0 1 20.56 33Z" fill="#4285F4"/>
+          <!-- Sector rojo (cierre arco, pequeño) -->
+          <path d="M50 50 L20.56 33 A34 34 0 0 1 50 16Z" fill="#EA4335"/>
+          <!-- Anillo blanco interior -->
+          <circle cx="50" cy="50" r="21" fill="#fff"/>
+          <!-- Círculo azul centro -->
+          <circle cx="50" cy="50" r="18" fill="#4285F4"/>
+          <!-- Centro blanco -->
+          <circle cx="50" cy="50" r="12" fill="#fff"/>
+          <!-- Brillo sutil -->
+          <circle cx="50" cy="50" r="50" fill="url(#chrome-shine)" opacity="0.08"/>
+          <defs>
+            <radialGradient id="chrome-shine" cx="35%" cy="25%" r="60%">
+              <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
+              <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
         </svg>
       </div>
 
@@ -354,15 +371,16 @@
 
       <a class="btn-primary" id="btn-chrome"
          href="intent://gsrobles2705.github.io/fintrack-app/#Intent;scheme=https;package=com.android.chrome;end">
-        <svg width="20" height="20" viewBox="0 0 72 72">
-          <circle cx="36" cy="36" r="36" fill="#fff"/>
-          <path d="M36 14A22 22 0 0 1 57.1 25H36Z" fill="#EA4335"/>
-          <path d="M57.1 25A22 22 0 0 1 57.1 47L41 36Z" fill="#FBBC05"/>
-          <path d="M57.1 47A22 22 0 0 1 14 47L30 36Z" fill="#34A853"/>
-          <path d="M14 47A22 22 0 0 1 14 25L30 36Z" fill="#EA4335"/>
-          <path d="M14 25A22 22 0 0 1 36 14L36 26Z" fill="#4285F4"/>
-          <circle cx="36" cy="36" r="10" fill="#4285F4"/>
-          <circle cx="36" cy="36" r="7"  fill="#fff"/>
+        <svg width="22" height="22" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="50" fill="#fff"/>
+          <path d="M50 50 L50 16 A34 34 0 0 1 79.44 33Z" fill="#EA4335"/>
+          <path d="M50 50 L79.44 33 A34 34 0 0 1 79.44 67Z" fill="#FBBC05"/>
+          <path d="M50 50 L79.44 67 A34 34 0 0 1 20.56 67Z" fill="#34A853"/>
+          <path d="M50 50 L20.56 67 A34 34 0 0 1 20.56 33Z" fill="#4285F4"/>
+          <path d="M50 50 L20.56 33 A34 34 0 0 1 50 16Z" fill="#EA4335"/>
+          <circle cx="50" cy="50" r="21" fill="#fff"/>
+          <circle cx="50" cy="50" r="18" fill="#4285F4"/>
+          <circle cx="50" cy="50" r="12" fill="#fff"/>
         </svg>
         Abrir en Chrome
       </a>

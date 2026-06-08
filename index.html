@@ -14,6 +14,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" 
         content="width=device-width, initial-scale=1.0">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>FinTrack</title>
 
   <!-- Google Fonts: Outfit -->
@@ -280,7 +281,8 @@
     </nav>
 
     <!-- MODAL OBJETIVO -->
-    <div class="modal-overlay" id="modal-objetivo" style="display:none">
+    <div class="modal-overlay" id="modal-objetivo" style="display:none"
+        onclick="if(event.target===this)cerrarModalObjetivo()">
       <div class="modal-card">
         <h3 class="modal-title">Objetivo semanal</h3>
         <p class="modal-subtitle">¿Cuánto quieres ahorrar esta semana?</p>
@@ -366,7 +368,19 @@
       </div>
 
       <!-- MONTOS SUGERIDOS -->
-      <p class="registro-label">MONTO SUGERIDO</p>
+      <div class="montos-header">
+        <p class="registro-label">MONTO SUGERIDO</p>
+        <button class="btn-editar-cats" onclick="abrirModalMontos()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/>
+            <path d="M13.5 6.5l4 4"/>
+          </svg>
+          Editar
+        </button>
+      </div>
       <div class="montos-grid">
         <button class="monto-btn" 
                 onclick="seleccionarMonto(2)">S/2</button>
@@ -407,10 +421,22 @@
       </div>
 
       <!-- CATEGORÍAS -->
-      <p class="registro-label">CATEGORÍA</p>
-      <div class="categorias-grid" id="categorias-container">
-        <!-- Se llena con JS según tipo -->
+      <div class="categorias-header">
+        <p class="registro-label">CATEGORÍA</p>
+        <button class="btn-editar-cats" onclick="abrirModalCategorias(currentType)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/>
+            <path d="M13.5 6.5l4 4"/>
+          </svg>
+          Editar
+        </button>
       </div>
+
+      <!-- Grid de categorías: llenado por renderCategorias() -->
+      <div id="categorias-container"></div>
 
       <!-- PRESUPUESTO DIARIO -->
       <div class="presupuesto-info" id="presupuesto-info">
@@ -453,6 +479,105 @@
         <span class="nav-label">Actividad</span>
       </div>
     </nav>
+
+    <!-- Modal 1: lista de categorías del tipo activo -->
+    <div class="modal-overlay" id="modal-categorias" style="display:none"
+        onclick="if(event.target===this)cerrarModalCategorias()">
+      <div class="modal-card" style="max-height:85vh; overflow-y:auto">
+    
+        <h3 class="modal-title" id="modal-cats-titulo">Categorías</h3>
+    
+        <!-- Lista dinámica -->
+        <div id="modal-cats-lista">
+          <!-- Generado por _renderListaCategorias() -->
+        </div>
+    
+        <!-- Botón nueva categoría -->
+        <button class="btn-nueva-cat" onclick="abrirFormCategoria()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M12 5l0 14"/><path d="M5 12l14 0"/>
+          </svg>
+          Nueva categoría
+        </button>
+    
+        <button class="btn-ghost" onclick="cerrarModalCategorias()">Cerrar</button>
+      </div>
+    </div>
+    
+    <!-- Modal 2: formulario nueva / editar categoría -->
+    <div class="modal-overlay" id="modal-cat-form" style="display:none"
+        onclick="if(event.target===this)cerrarFormCategoria()">
+      <div class="modal-card" style="max-height:90vh; overflow-y:auto">
+    
+        <h3 class="modal-title" id="modal-cat-form-titulo">Nueva Categoría</h3>
+        <p class="cat-form-hint" id="modal-cat-form-hint">
+          Ponle un nombre, elige un ícono y aparecerá siempre en tu grid.
+        </p>
+    
+        <!-- Nombre -->
+        <div>
+          <input
+            type="text"
+            id="cat-input-label"
+            class="input-field"
+            placeholder="Nombre de la categoría"
+            maxlength="20"
+            autocomplete="off"
+          >
+          <div class="input-error-msg" id="error-cat-label">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M12 9v4"/>
+              <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871
+                      h16.214a1.914 1.914 0 0 0 1.636-2.87l-8.106-13.536
+                      a1.914 1.914 0 0 0-3.274 0"/>
+              <path d="M12 16h.01"/>
+            </svg>
+            <span>El nombre es obligatorio</span>
+          </div>
+        </div>
+    
+        <!-- Selector de ícono -->
+        <div id="cat-icon-section">
+          <p class="registro-label" style="margin-bottom: var(--spacing-sm)">ÍCONO</p>
+          <div class="icon-picker-grid" id="cat-icon-grid"></div>
+        </div>
+    
+        <button class="btn-primary" onclick="guardarCategoria()">
+          Guardar
+        </button>
+        <button class="btn-ghost" onclick="cerrarFormCategoria()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+
+    <!-- Modal: Editar montos sugeridos -->
+    <div class="modal-overlay" id="modal-montos" style="display:none"
+        onclick="if(event.target===this)cerrarModalMontos()">
+      <div class="modal-card">
+        <h3 class="modal-title" id="modal-montos-titulo">Montos sugeridos</h3>
+        <p class="modal-subtitle">Personaliza los 6 montos de acceso rápido.</p>
+
+        <div id="modal-montos-inputs">
+          <!-- Generado por _renderMontoInputs() -->
+        </div>
+
+        <button class="btn-primary" onclick="guardarMontos()">
+          Guardar montos
+        </button>
+        <button class="btn-ghost btn-restaurar-montos" onclick="restaurarMontosDefault()">
+          Restaurar predeterminados
+        </button>
+        <button class="btn-ghost" onclick="cerrarModalMontos()">Cancelar</button>
+      </div>
+    </div>
 
   </div>
 
@@ -537,7 +662,8 @@
     </nav>
 
     <!-- MODAL: Nueva / Editar Deuda -->
-    <div class="modal-overlay" id="modal-deuda" style="display:none">
+    <div class="modal-overlay" id="modal-deuda" style="display:none"
+        onclick="if(event.target===this)cerrarModalDeuda()">
       <div class="modal-card">
         <h3 class="modal-title" id="modal-deuda-titulo">Nueva Deuda</h3>
 
@@ -606,7 +732,8 @@
     </div>
 
     <!-- Modal: Opciones de deuda -->
-    <div class="modal-overlay" id="modal-opciones-deuda" style="display:none">
+    <div class="modal-overlay" id="modal-opciones-deuda" style="display:none"
+        onclick="if(event.target===this)closeDebtOptions()">
       <div class="modal-card">
         <h3 class="modal-title" id="modal-opciones-titulo">Opciones</h3>
         <div id="modal-opciones-botones">
@@ -616,7 +743,8 @@
     </div>
 
     <!-- Modal: Confirmar pago -->
-    <div class="modal-overlay" id="modal-confirmar-pago" style="display:none">
+    <div class="modal-overlay" id="modal-confirmar-pago" style="display:none"
+        onclick="if(event.target===this)cerrarModalPago()">
       <div class="modal-card">
         <h3 class="modal-title">Confirmar pago</h3>
         <p class="modal-subtitle" id="modal-pago-texto">
@@ -661,6 +789,7 @@
       <div class="section-header">
         <p class="section-title">Registro de Actividad</p>
         <span class="section-link" 
+              style="font-size: 20px;"
               onclick="toggleFiltro()">⇅</span>
       </div>
 
@@ -700,7 +829,8 @@
     </nav>
 
     <!-- Modal: Confirmar eliminar transacción -->
-    <div class="modal-overlay" id="modal-eliminar-tx" style="display:none">
+    <div class="modal-overlay" id="modal-eliminar-tx" style="display:none"
+        onclick="if(event.target===this)cerrarModalEliminarTx()">
       <div class="modal-card">
         <h3 class="modal-title">Eliminar transacción</h3>
         <p class="modal-subtitle">
@@ -1061,9 +1191,9 @@
   <script src="js/router.js"></script>
   <script src="js/toast.js"></script>
   <script src="js/ui.js"></script>
-  <script src="js/screens/splash.js"></script>
   <script src="js/screens/onboarding.js"></script>
   <script src="js/screens/home.js"></script>
+  <script src="js/categorias.js"></script>
   <script src="js/screens/registro.js"></script>
   <script src="js/screens/deudas.js"></script>
   <script src="js/screens/actividad.js"></script>
