@@ -1,11 +1,7 @@
-// categorias.js - Full category management system
-// - Complete catalogue of base categories (never deleted)
-// - User can activate/deactivate any base or custom category
-// - Custom categories can be added/edited/removed (removal only if no transactions)
-// - Transaction history stores frozen categoryLabel and categoryIcon
+// categorias.js - Full category management system (unified storage)
 
 // ==========================================
-// 1. BASE CATALOGUE (complete, never changes)
+// 1. BASE CATALOGUE (used only for reset)
 // ==========================================
 const BASE_CATALOGUE = {
   expense: [
@@ -40,40 +36,37 @@ function getSpecialCategory(id) {
 // ==========================================
 // 2. HELPERS
 // ==========================================
-/** Get full definition of a category by its ID (base or custom) */
-function getCategoryDefinition(id) {
-  if (!id) return null;
-  // Special categories first
-  const special = getSpecialCategory(id);
-  if (special) return special;
-  // Buscar en catálogo base
-  for (let type of ['expense', 'income']) {
-    const found = BASE_CATALOGUE[type].find(c => c.id === id);
-    if (found) return found;
+function ensureCategoriesInitialized() {
+  let all = Storage.getAllCategories();
+  if (!all) {
+    Storage.initCategoriesFromBase(BASE_CATALOGUE.expense, BASE_CATALOGUE.income);
   }
-  // Buscar en categorías personalizadas (guardadas como gastos/ingresos)
-  const custom = Storage.getCustomCategories();
-  const allCustom = [...(custom.gastos || []), ...(custom.ingresos || [])];
-  return allCustom.find(c => c.id === id);
 }
 
-/** Get just the iconKey from a category ID (fallback 'categoria') */
+function getAllCategoriesOfType(tipo) {
+  ensureCategoriesInitialized();
+  const storageType = tipo === 'gasto' ? 'expense' : 'income';
+  return Storage.getCategoriesByType(storageType) || [];
+}
+
+function getCategoryDefinition(id) {
+  if (!id) return null;
+  const special = getSpecialCategory(id);
+  if (special) return special;
+  const expenseCats = getAllCategoriesOfType('gasto');
+  const incomeCats = getAllCategoriesOfType('ingreso');
+  const all = [...expenseCats, ...incomeCats];
+  return all.find(c => c.id === id);
+}
+
 function getCategoryIconKeyFromId(id) {
   const def = getCategoryDefinition(id);
   return def?.iconKey || 'categoria';
 }
 
-// Expose globally for migration in storage.js
 window.getCategoryDefinition = getCategoryDefinition;
 window.getCategoryIconKeyFromId = getCategoryIconKeyFromId;
 
-/** Get the list of custom categories (pinned) from Storage */
-function getCustomCategories(tipo) {
-  const custom = Storage.getCustomCategories();
-  return tipo === 'gasto' ? custom.gastos : custom.ingresos;
-}
-
-/** Count transactions using a given category ID (for delete safety) */
 function _countTransactionsByCategory(catId) {
   return Storage.getTransactions().filter(t => t.category === catId).length;
 }
@@ -81,34 +74,23 @@ function _countTransactionsByCategory(catId) {
 // ==========================================
 // 3. ACTIVE CATEGORIES (visible in the grid)
 // ==========================================
-/**
- * Returns ordered list of active categories for a given type, plus "Otro" at the end.
- * Order respects the active IDs stored by the user.
- */
 function getActiveCategories(tipo) {
   const storageType = tipo === 'gasto' ? 'expense' : 'income';
   let activeIds = Storage.getActiveCategories(storageType);
+  const allCats = getAllCategoriesOfType(tipo);
   if (!activeIds || activeIds.length === 0) {
-    // First time: all base categories are active
-    activeIds = BASE_CATALOGUE[storageType].map(c => c.id);
+    activeIds = allCats.map(c => c.id);
     Storage.saveActiveCategories(storageType, activeIds);
   }
-
-  const base = BASE_CATALOGUE[storageType];
-  const custom = getCustomCategories(tipo);
-  const all = [...base, ...custom];
-
   const ordered = [];
   for (let id of activeIds) {
-    const cat = all.find(c => c.id === id);
+    const cat = allCats.find(c => c.id === id);
     if (cat) ordered.push(cat);
   }
-  // Always add "Otro" at the end
   ordered.push({ id: 'otro', label: 'Otro', iconKey: 'categoria' });
   return ordered;
 }
 
-// Original getCategorias now just calls getActiveCategories
 function getCategorias(tipo) {
   return getActiveCategories(tipo);
 }
@@ -133,9 +115,9 @@ function _renderIconPicker() {
 }
 
 // ==========================================
-// 5. MODAL MANAGEMENT (activate/deactivate categories)
+// 5. MODAL MANAGEMENT (unified)
 // ==========================================
-let _categoryType = 'gasto';   // 'gasto' or 'ingreso'
+let _categoryType = 'gasto';
 let _editingCategoryId = null;
 let _selectedIconKey = 'categoria';
 
@@ -156,63 +138,43 @@ function renderManageModal() {
   const container = document.getElementById('modal-cats-lista');
   const storageType = _categoryType === 'gasto' ? 'expense' : 'income';
   let activeIds = Storage.getActiveCategories(storageType) || [];
-  const baseList = BASE_CATALOGUE[storageType];
-  const customList = getCustomCategories(_categoryType);
+  const allCategories = getAllCategoriesOfType(_categoryType);
   
-  let html = `<div class="cat-group-title">Categorías base</div>`;
-  baseList.forEach(cat => {
+  let html = '';
+  allCategories.forEach(cat => {
     const isActive = activeIds.includes(cat.id);
     html += `
-      <div class="cat-manage-item base-item">
+      <div class="cat-manage-item">
         <div class="cat-manage-icon">${Icons.get(cat.iconKey)}</div>
         <div class="cat-manage-info">
           <p class="cat-manage-label">${cat.label}</p>
         </div>
-        <label class="cat-toggle-switch">
-          <input type="checkbox" class="cat-toggle" data-id="${cat.id}" ${isActive ? 'checked' : ''}>
-          <span class="toggle-slider"></span>
-        </label>
+        <div class="cat-manage-acciones">
+          <button class="cat-btn-edit" onclick="abrirFormCategoria('${cat.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
+              <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415" />
+              <path d="M16 5l3 3" />
+            </svg>
+          </button>
+          <label class="cat-toggle-switch">
+            <input type="checkbox" class="cat-toggle" data-id="${cat.id}" ${isActive ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
+          <button class="cat-btn-delete" onclick="deleteCategory('${cat.id}')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M18 6l-12 12" />
+              <path d="M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>`;
   });
   
-  if (customList.length) {
-    html += `<div class="cat-group-title">Mis categorías</div>`;
-    customList.forEach(cat => {
-      const isActive = activeIds.includes(cat.id);
-      html += `
-        <div class="cat-manage-item">
-          <div class="cat-manage-icon">${Icons.get(cat.iconKey || 'categoria')}</div>
-          <div class="cat-manage-info">
-            <p class="cat-manage-label">${cat.label}</p>
-          </div>
-          <div class="cat-manage-acciones">
-            <button class="cat-btn-edit" onclick="abrirFormCategoria('${cat.id}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
-                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415" />
-                <path d="M16 5l3 3" />
-              </svg>
-            </button>
-            <label class="cat-toggle-switch">
-              <input type="checkbox" class="cat-toggle" data-id="${cat.id}" ${isActive ? 'checked' : ''}>
-              <span class="toggle-slider"></span>
-            </label>
-            <button class="cat-btn-delete" onclick="deletePinnedCategory('${cat.id}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                <path d="M18 6l-12 12" />
-                <path d="M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>`;
-    });
-  }
-  
   container.innerHTML = html;
   
-  // Attach event listeners to toggles
   container.querySelectorAll('.cat-toggle').forEach(toggle => {
     toggle.addEventListener('change', (e) => {
       const id = toggle.dataset.id;
@@ -223,20 +185,38 @@ function renderManageModal() {
         newActive = newActive.filter(i => i !== id);
       }
       Storage.saveActiveCategories(storageType, newActive);
-      renderManageModal();      // refresh to keep order
-      renderCategorias();       // update the registration grid
+      renderManageModal();
+      renderCategorias();
     });
   });
   
-  // Add "New category" button (only if not already present)
-  let newBtn = container.parentElement.querySelector('.btn-nueva-cat');
-  if (!newBtn) {
-    newBtn = document.createElement('button');
-    newBtn.className = 'btn-nueva-cat';
-    newBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg> Nueva categoría`;
-    newBtn.onclick = () => abrirFormCategoria();
-    container.parentElement.appendChild(newBtn);
-  }
+  let oldNewBtn = container.parentElement.querySelector('.btn-nueva-cat');
+  let oldResetBtn = container.parentElement.querySelector('.btn-reset-cats');
+  let oldCloseBtn = container.parentElement.querySelector('.btn-ghost');
+  if (oldNewBtn) oldNewBtn.remove();
+  if (oldResetBtn) oldResetBtn.remove();
+  if (oldCloseBtn) oldCloseBtn.remove();
+
+  // Botón Nueva categoría
+  const newBtn = document.createElement('button');
+  newBtn.className = 'btn-nueva-cat';
+  newBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg> Nueva categoría`;
+  newBtn.onclick = () => abrirFormCategoria();
+  container.parentElement.appendChild(newBtn);
+
+  // Botón Restablecer
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'btn-secondary btn-reset-cats';
+  resetBtn.textContent = 'Restablecer categorías predeterminadas';
+  resetBtn.onclick = () => resetDefaultCategories();
+  container.parentElement.appendChild(resetBtn);
+
+  // Botón Cerrar (reutilizamos el estilo btn-ghost)
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn-ghost';
+  closeBtn.textContent = 'Cerrar';
+  closeBtn.onclick = () => cerrarModalCategorias();
+  container.parentElement.appendChild(closeBtn);
 }
 
 // ==========================================
@@ -251,9 +231,7 @@ function abrirFormCategoria(id = null) {
   clearFieldError('cat-input-label', 'error-cat-label');
   
   if (id) {
-    const custom = Storage.getCustomCategories();
-    const list = _categoryType === 'gasto' ? custom.gastos : custom.ingresos;
-    const cat = list.find(c => c.id === id);
+    const cat = getCategoryDefinition(id);
     if (!cat) return;
     titleEl.textContent = 'Editar categoría';
     if (hintEl) hintEl.textContent = 'Modifica el nombre o el ícono.';
@@ -289,97 +267,75 @@ function guardarCategoria() {
     return;
   }
   
-  const custom = Storage.getCustomCategories();
-  const list = _categoryType === 'gasto' ? custom.gastos : custom.ingresos;
-  const base = _categoryType === 'gasto' ? BASE_CATALOGUE.expense : BASE_CATALOGUE.income;
-  
-  // Check duplicate name (excluding current editing)
-  const isDuplicate = list.some(c => c.label.toLowerCase() === label.toLowerCase() && c.id !== _editingCategoryId);
-  const isDupBase = base.some(c => c.label.toLowerCase() === label.toLowerCase());
-  if (isDuplicate || isDupBase) {
+  const storageType = _categoryType === 'gasto' ? 'expense' : 'income';
+  const allCats = getAllCategoriesOfType(_categoryType);
+  const isDuplicate = allCats.some(c => c.label.toLowerCase() === label.toLowerCase() && c.id !== _editingCategoryId);
+  if (isDuplicate) {
     setFieldError('cat-input-label', 'error-cat-label', 'Ya existe una categoría con ese nombre');
     return;
   }
   
-  const storageType = _categoryType === 'gasto' ? 'expense' : 'income';
-  let activeIds = Storage.getActiveCategories(storageType);
-  
   if (_editingCategoryId) {
-    // Edit existing
-    const idx = list.findIndex(c => c.id === _editingCategoryId);
-    if (idx !== -1) {
-      list[idx].label = label;
-      list[idx].iconKey = _selectedIconKey;
-    }
+    Storage.updateCategory(storageType, _editingCategoryId, { label, iconKey: _selectedIconKey });
     Toast.success('Categoría actualizada', `"${label}" fue modificada correctamente.`);
   } else {
-    // New category
     const newId = `custom_${Date.now()}`;
-    list.push({ id: newId, label, iconKey: _selectedIconKey, custom: true });
-    // Activate it by default
-    if (!activeIds.includes(newId)) {
-      activeIds.push(newId);
-      Storage.saveActiveCategories(storageType, activeIds);
-    }
+    Storage.addCustomCategory(storageType, { id: newId, label, iconKey: _selectedIconKey, custom: true });
     Toast.success('Categoría añadida', `"${label}" aparecerá siempre en tu grid.`);
   }
   
-  if (_categoryType === 'gasto') custom.gastos = list;
-  else custom.ingresos = list;
-  Storage.saveCustomCategories(custom);
   cerrarFormCategoria();
   renderManageModal();
   renderCategorias();
 }
 
 // ==========================================
-// 7. DELETE CUSTOM CATEGORY (safe)
+// 7. DELETE CATEGORY (direct removal)
 // ==========================================
-async function deletePinnedCategory(id) {
-  const custom = Storage.getCustomCategories();
-  const list = _categoryType === 'gasto' ? custom.gastos : custom.ingresos;
-  const cat = list.find(c => c.id === id);
+async function deleteCategory(id) {
+  if (id === 'otro') return;
+  const cat = getCategoryDefinition(id);
   if (!cat) return;
-  
-  const usageCount = _countTransactionsByCategory(id);
-  if (usageCount > 0) {
-    Toast.warning('No se puede eliminar', `Esta categoría tiene ${usageCount} transacción(es). Se ocultará del grid pero seguirá en el historial.`);
-    // Just deactivate it
-    const storageType = _categoryType === 'gasto' ? 'expense' : 'income';
-    let activeIds = Storage.getActiveCategories(storageType).filter(i => i !== id);
-    Storage.saveActiveCategories(storageType, activeIds);
-    renderManageModal();
-    renderCategorias();
-    return;
-  }
   
   const ok = await AppConfirm({
     titulo: 'Eliminar categoría',
-    mensaje: `¿Eliminar "${cat.label}" permanentemente?`,
+    mensaje: `¿Eliminar "${cat.label}" permanentemente? Esta acción no se puede deshacer.`,
     tipo: 'danger',
     btnOk: 'Sí, eliminar',
     btnCancel: 'Cancelar'
   });
   if (!ok) return;
   
-  const newList = list.filter(c => c.id !== id);
-  if (_categoryType === 'gasto') custom.gastos = newList;
-  else custom.ingresos = newList;
-  Storage.saveCustomCategories(custom);
-  // Also remove from active list
   const storageType = _categoryType === 'gasto' ? 'expense' : 'income';
-  let activeIds = Storage.getActiveCategories(storageType).filter(i => i !== id);
-  Storage.saveActiveCategories(storageType, activeIds);
-  Toast.success('Categoría eliminada', `"${cat.label}" fue eliminada.`);
+  Storage.deleteCategory(storageType, id);
   renderManageModal();
   renderCategorias();
+  Toast.success('Categoría eliminada', `"${cat.label}" fue eliminada.`);
 }
 
-// Alias for HTML onclick
-const eliminarPinned = deletePinnedCategory;
+// ==========================================
+// 8. RESET DEFAULT CATEGORIES (merge)
+// ==========================================
+async function resetDefaultCategories() {
+  const ok = await AppConfirm({
+    titulo: 'Restablecer categorías',
+    mensaje: 'Se añadirán las categorías base que falten (Comida, Transporte, etc.). No se eliminarán tus categorías personalizadas.',
+    tipo: 'warning',
+    btnOk: 'Restablecer',
+    btnCancel: 'Cancelar'
+  });
+  if (!ok) return;
+  
+  const storageType = _categoryType === 'gasto' ? 'expense' : 'income';
+  const baseList = _categoryType === 'gasto' ? BASE_CATALOGUE.expense : BASE_CATALOGUE.income;
+  Storage.restoreBaseCategories(storageType, baseList);
+  renderManageModal();
+  renderCategorias();
+  Toast.success('Categorías restablecidas', 'Se añadieron las categorías base faltantes.');
+}
 
 // ==========================================
-// 8. LEGACY _getLabelCategoria (kept for compatibility, but will be overridden by transaction's own label)
+// 9. LEGACY COMPATIBILITY FUNCTIONS
 // ==========================================
 function _getLabelCategoria(catId) {
   if (catId && catId.startsWith('otro_libre:')) {
@@ -402,3 +358,6 @@ function seleccionarIconoCat(key) {
   _selectedIconKey = key;
   _renderIconPicker();
 }
+
+// Expose initialization for app.js
+window.ensureCategoriesInitialized = ensureCategoriesInitialized;

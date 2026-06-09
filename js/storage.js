@@ -181,6 +181,83 @@ const Storage = {
     }
   },
 
+  // ---- UNIFIED CATEGORIES (base + custom) ----
+  saveAllCategories(data) {
+    localStorage.setItem('fintrack_all_categories', JSON.stringify(data));
+  },
+
+  getAllCategories() {
+    const stored = localStorage.getItem('fintrack_all_categories');
+    return stored ? JSON.parse(stored) : null;
+  },
+
+  initCategoriesFromBase(baseExpense, baseIncome) {
+    const all = {
+      expense: baseExpense.map(cat => ({ ...cat, custom: false })),
+      income: baseIncome.map(cat => ({ ...cat, custom: false }))
+    };
+    this.saveAllCategories(all);
+    this.saveActiveCategories('expense', all.expense.map(c => c.id));
+    this.saveActiveCategories('income', all.income.map(c => c.id));
+    return all;
+  },
+
+  getCategoriesByType(type) {
+    const all = this.getAllCategories();
+    if (!all) return [];
+    return all[type] || [];
+  },
+
+  saveCategoriesByType(type, categories) {
+    const all = this.getAllCategories() || { expense: [], income: [] };
+    all[type] = categories;
+    this.saveAllCategories(all);
+  },
+
+  addCustomCategory(type, category) {
+    const categories = this.getCategoriesByType(type);
+    categories.push({ ...category, custom: true });
+    this.saveCategoriesByType(type, categories);
+    let active = this.getActiveCategories(type) || [];
+    if (!active.includes(category.id)) {
+      active.push(category.id);
+      this.saveActiveCategories(type, active);
+    }
+  },
+
+  updateCategory(type, id, updates) {
+    const categories = this.getCategoriesByType(type);
+    const index = categories.findIndex(c => c.id === id);
+    if (index !== -1) {
+      categories[index] = { ...categories[index], ...updates };
+      this.saveCategoriesByType(type, categories);
+    }
+  },
+
+  deleteCategory(type, id) {
+    let categories = this.getCategoriesByType(type);
+    const newCategories = categories.filter(c => c.id !== id);
+    if (newCategories.length === categories.length) return false;
+    this.saveCategoriesByType(type, newCategories);
+    let active = this.getActiveCategories(type) || [];
+    active = active.filter(aid => aid !== id);
+    this.saveActiveCategories(type, active);
+    return true;
+  },
+  
+  restoreBaseCategories(type, baseCatalogue) {
+    const current = this.getCategoriesByType(type);
+    const existingIds = current.map(c => c.id);
+    const toAdd = baseCatalogue.filter(baseCat => !existingIds.includes(baseCat.id));
+    if (toAdd.length === 0) return;
+    const updated = [...current, ...toAdd.map(cat => ({ ...cat, custom: false }))];
+    this.saveCategoriesByType(type, updated);
+    let active = this.getActiveCategories(type) || [];
+    const newIds = toAdd.map(c => c.id);
+    active = [...active, ...newIds.filter(id => !active.includes(id))];
+    this.saveActiveCategories(type, active);
+  },
+
   // ---- UTILITY ----
 
   clearAll() {

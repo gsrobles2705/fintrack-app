@@ -142,6 +142,7 @@ function initApp() {
       await solicitarPermisoNotificaciones();
       checkVersionNotification();
       checkDueDateDebts();
+      window.ensureCategoriesInitialized();
       Storage.migrateTransactions();   // add categoryLabel/Icon to old transactions
       navigate(SCREENS.HOME);
     } else {
