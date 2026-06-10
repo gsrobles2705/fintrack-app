@@ -503,4 +503,120 @@
 
 .btn-reset-cats:active {
   color: var(--text-secondary);
+  transform: scale(0.98);
+}
+
+/* Streak */
+.streak-container {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.streak-badge {
+  background: rgba(255, 176, 58, 0.12);
+  border-radius: 40px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.streak-icon { font-size: 16px; }
+.streak-count { font-size: 13px; font-weight: 700; color: #FFB03A; }
+
+/* Growth indicator */
+.growth-indicator {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.growth-value.up { color: var(--accent-green); }
+.growth-value.down { color: var(--accent-red); }
+.growth-label { color: var(--text-tertiary); }
+
+/* Search bar en actividad */
+.search-filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: var(--spacing-md);
+}
+
+.search-filter-bar .input-field {
+  flex: 2;
+}
+
+.search-filter-bar .select-field {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color-2);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  padding: 12px;
+  font-family: var(--font-main);
+}
+
+/* Botón vaciar notificaciones */
+.btn-clear-all {
+  background: transparent;
+  border: 1px solid var(--border-color-2);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: auto;
+}
+
+.btn-clear-all:active {
+  background: var(--bg-card-2);
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color-2);
+  border-radius: var(--radius-xl);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.filter-btn.active {
+  background: var(--accent-green-dim);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.filter-btn:active {
+  transform: scale(0.96);
+}
+
+.search-filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: var(--spacing-md);
+}
+
+.search-filter-bar .input-field {
+  flex: 2;
+  min-width: 0;
+}
+
+.filter-buttons {
+  flex: 1;
 }

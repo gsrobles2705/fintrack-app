@@ -46,24 +46,12 @@ const NOTIF_CONFIG = {
 // CORE: data and persistence
 // ─────────────────────────────────────────────
 
-/**
- * @typedef {Object} NotificationItem
- * @property {string}  id
- * @property {string}  tipo
- * @property {string}  titulo
- * @property {string}  mensaje
- * @property {string}  isoDate  - ISO 8601 of the actual event moment
- * @property {boolean} leido
- */
-
 function agregarNotificacion(tipo, titulo, mensaje, dateOverride = null) {
   const notification = {
     id:      `notif_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     tipo,
     titulo,
     mensaje,
-    // dateOverride allows inserting retroactive notifications with
-    // the correct past date (case: "missed days")
     isoDate: dateOverride ?? new Date().toISOString(),
     leido:   false
   };
@@ -72,12 +60,8 @@ function agregarNotificacion(tipo, titulo, mensaje, dateOverride = null) {
   list.unshift(notification);
   Storage.saveNotifications(list);
 
-  // Update badge synchronously and immediately
   updateNotificationBadge();
-
-  // Native push notification (non-blocking)
   _sendNativePush(titulo, mensaje);
-
   return notification;
 }
 
@@ -107,107 +91,126 @@ function countUnread() {
   return Storage.getNotifications().filter(n => !n.leido).length;
 }
 
-// ─────────────────────────────────────────────
-// TIMESTAMP: same logic as actividad.js
-// ─────────────────────────────────────────────
+// NUEVA MEJORA 4: vaciar todas las notificaciones
+function vaciarTodasNotificaciones() {
+  AppConfirm({
+    titulo: 'Vaciar notificaciones',
+    mensaje: '¿Eliminar todas las notificaciones permanentemente?',
+    tipo: 'warning',
+    btnOk: 'Vaciar todo'
+  }).then(ok => {
+    if (ok) {
+      Storage.clearAllNotifications();
+      renderNotificaciones();
+      updateNotificationBadge();
+      Toast.info('Notificaciones vaciadas', '');
+      vibrate(50);
+    }
+  });
+}
+window.vaciarTodasNotificaciones = vaciarTodasNotificaciones;
 
-/**
- * Formats the elapsed time since isoDate until now.
- * Uses the same reference logic as formatDate() in home.js:
- *   - < 2 min  → "Ahora"
- *   - < 60 min → "Hace Xm"
- *   - < 24 h   → "Hace Xh"
- *   - yesterday → "Ayer"
- *   - rest     → "12 may" (same es-PE locale as actividad)
- *
- * The "today" / "yesterday" comparison is done against local midnight,
- * same as in formatDate(), to avoid timezone offsets.
- */
+// ─────────────────────────────────────────────
+// TIMESTAMP
+// ─────────────────────────────────────────────
 function formatNotificationTime(isoDate) {
   const date   = new Date(isoDate);
   const now    = new Date();
   const diffMs = now - date;
-
-  // Less than one minute fifty-nine seconds → "Ahora"
   if (diffMs < 120000)  return 'Ahora';
-
   const diffMin = Math.floor(diffMs / 60000);
   if (diffMin < 60) return `Hace ${diffMin}m`;
-
   const diffH = Math.floor(diffMs / 3600000);
   if (diffH < 24)   return `Hace ${diffH}h`;
-
-  // Compare dates at local midnight (same as formatDate in home.js)
   const today  = new Date();
   today.setHours(0, 0, 0, 0);
-
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
-
   const dateDay = new Date(date);
   dateDay.setHours(0, 0, 0, 0);
-
   if (dateDay.getTime() === today.getTime())     return 'Hoy';
   if (dateDay.getTime() === yesterday.getTime()) return 'Ayer';
-
-  // More than 2 days: short format identical to actividad
-  return date.toLocaleDateString('es-PE', {
-    day: 'numeric', month: 'short'
-  });
+  return date.toLocaleDateString('es-PE', { day: 'numeric', month: 'short' });
 }
 
 // ─────────────────────────────────────────────
-// NATIVE PUSH NOTIFICATIONS (Web Notifications API)
+// NATIVE PUSH
 // ─────────────────────────────────────────────
-
-/**
- * Requests permission the first time and caches it.
- * Returns true if permission is granted.
- */
 async function solicitarPermisoNotificaciones() {
   if (!('Notification' in window)) return false;
   if (Notification.permission === 'granted')  return true;
   if (Notification.permission === 'denied')   return false;
-
   const result = await Notification.requestPermission();
   return result === 'granted';
 }
 
-/**
- * Sends a native push notification if permission is granted.
- * Does not fire if the app is in the foreground AND the document is visible,
- * to avoid duplicating in-app visual feedback.
- */
 async function _sendNativePush(title, message) {
   if (!('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
-
-  // If the user has the app open and visible, don't duplicate
   if (document.visibilityState === 'visible') return;
-
   try {
     new Notification(`FinTrack · ${title}`, {
       body:  message,
       icon:  '/icons/icon-192.png',
       badge: '/icons/badge-72.png',
-      tag:   `fintrack-${Date.now()}` // prevents collapsing distinct notifications
+      tag:   `fintrack-${Date.now()}`
     });
-  } catch (_) {
-    // Silent failure: the environment may not support the constructor
-  }
+  } catch (_) {}
 }
 
 // ─────────────────────────────────────────────
 // RENDER
 // ─────────────────────────────────────────────
+function renderNotifCard(notif) {
+  const cfg = NOTIF_CONFIG[notif.tipo] || NOTIF_CONFIG.system;
+  const time = formatNotificationTime(notif.isoDate);
+  return `
+    <div class="notif-card ${notif.leido ? '' : 'unread'}" data-id="${notif.id}" style="border-left-color: ${cfg.color}">
+      <div class="notif-icon-wrap" style="background: ${cfg.bg}; color: ${cfg.color}">
+        ${cfg.icon.replace('stroke="currentColor"', `stroke="${cfg.color}"`)}
+      </div>
+      <div class="notif-body">
+        <div class="notif-header-row">
+          <p class="notif-title">${escapeHtml(notif.titulo)}</p>
+          <span class="notif-tiempo">${time}</span>
+        </div>
+        <p class="notif-message">${escapeHtml(notif.mensaje)}</p>
+      </div>
+    </div>`;
+}
+
+function attachSwipeToCards() {
+  document.querySelectorAll('.notif-card').forEach(card => {
+    if (card._swipeAttached) return;
+    card._swipeAttached = true;
+    let startX = 0;
+    const onTouchStart = (e) => { startX = e.touches[0].clientX; };
+    const onTouchEnd = (e) => {
+      const endX = e.changedTouches[0].clientX;
+      if (endX - startX > 80) {
+        const id = card.dataset.id;
+        if (id) {
+          eliminarNotificacion(id);
+          card.remove();
+          if (document.querySelectorAll('.notif-card').length === 0) {
+            renderNotificaciones();
+          } else {
+            updateNotificationBadge();
+          }
+        }
+      }
+    };
+    card.addEventListener('touchstart', onTouchStart);
+    card.addEventListener('touchend', onTouchEnd);
+  });
+}
 
 function renderNotificaciones() {
   marcarTodasLeidas();
 
-  const list      = Storage.getNotifications();
+  const list = Storage.getNotifications();
   const container = document.getElementById('notificaciones-lista');
-
-  const now       = new Date();
+  const now = new Date();
   const startOfDay = new Date(now);
   startOfDay.setHours(0, 0, 0, 0);
 
@@ -240,29 +243,17 @@ function renderNotificaciones() {
   let html = '';
   if (todayItems.length  > 0) html += `<p class="notif-seccion-label">HOY</p>`   + todayItems.map(renderNotifCard).join('');
   if (olderItems.length  > 0) html += `<p class="notif-seccion-label">ANTES</p>` + olderItems.map(renderNotifCard).join('');
-
   container.innerHTML = html;
+
+  attachSwipeToCards();
 }
 
-function renderNotifCard(notif) {
-  const cfg  = NOTIF_CONFIG[notif.tipo] || NOTIF_CONFIG.system;
-  const time = formatNotificationTime(notif.isoDate);
-
-  return `
-    <div class="notif-card ${notif.leido ? '' : 'unread'}"
-         style="border-left-color: ${cfg.color}">
-      <div class="notif-icon-wrap"
-           style="background: ${cfg.bg}; color: ${cfg.color}">
-        <span style="display:flex">
-          ${cfg.icon.replace('stroke="currentColor"', `stroke="${cfg.color}"`)}
-        </span>
-      </div>
-      <div class="notif-body">
-        <div class="notif-header-row">
-          <p class="notif-title">${notif.titulo}</p>
-          <span class="notif-tiempo">${time}</span>
-        </div>
-        <p class="notif-message">${notif.mensaje}</p>
-      </div>
-    </div>`;
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
 }

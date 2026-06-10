@@ -20,6 +20,51 @@ function renderHome() {
   renderGoal(goal, calculateWeeklyBalance(transactions), currency);
   renderRecentTransactions(transactions.slice(0, 3), currency);
   renderBudget();
+  renderStreak();
+  renderGrowthIndicator();
+}
+
+function renderStreak() {
+  const streak = Storage.getStreak();
+  const streakContainer = document.getElementById('streak-container');
+  if (streakContainer) {
+    streakContainer.innerHTML = `
+      <div class="streak-badge">
+        <span class="streak-icon">🔥</span>
+        <span class="streak-count">${streak.count} días</span>
+      </div>
+    `;
+  }
+}
+
+function renderGrowthIndicator() {
+  const transactions = Storage.getTransactions();
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+  const currentBalance = calculateCurrentBalance(transactions);
+  const balanceLastMonth = transactions
+    .filter(t => new Date(t.date) >= lastMonthStart && new Date(t.date) <= lastMonthEnd)
+    .reduce((sum, t) => t.type === 'ingreso' ? sum + t.amount : sum - t.amount, 0);
+  let percent = 0, direction = 'same';
+  if (balanceLastMonth !== 0) {
+    const change = ((currentBalance - balanceLastMonth) / Math.abs(balanceLastMonth)) * 100;
+    percent = Math.abs(change).toFixed(1);
+    direction = change >= 0 ? 'up' : 'down';
+  }
+  const growthHtml = `
+    <div class="growth-indicator ${direction}">
+      <span class="growth-value">${direction === 'up' ? '+' : ''}${percent}%</span>
+      <span class="growth-label">vs mes anterior</span>
+    </div>
+  `;
+  const balanceCard = document.querySelector('#screen-home .card:first-child');
+  if (balanceCard && !balanceCard.querySelector('.growth-indicator')) {
+    balanceCard.insertAdjacentHTML('beforeend', growthHtml);
+  } else if (balanceCard) {
+    balanceCard.querySelector('.growth-indicator').outerHTML = growthHtml;
+  }
 }
 
 function getGreeting() {

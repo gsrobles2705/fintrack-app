@@ -93,4 +93,10 @@ function closeModal(id, callback) {
     overlay.style.display = 'none';
     if (callback) callback();
   }, { once: true });
+
+  // NUEVA MEJORA 12: Vibración háptica
+  function vibrate(pattern = 50) {
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  }
+  window.vibrate = vibrate;
 }

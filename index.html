@@ -186,10 +186,11 @@
 
       <!-- SALUDO -->
       <div class="home-greeting">
-        <p class="greeting-label">PANEL PRINCIPAL</p>
-        <h1 class="greeting-name" id="home-greeting-name">
-          Buen día, Gabriel
-        </h1>
+        <div class="greeting-header">
+          <p class="greeting-label">PANEL PRINCIPAL</p>
+          <div class="streak-container" id="streak-container"></div>
+        </div>
+        <h1 class="greeting-name" id="home-greeting-name">Buen día, Gabriel</h1>
       </div>
 
       <!-- BALANCE SEMANAL -->
@@ -611,9 +612,11 @@
       </div>
 
       <!-- ACTIVAS -->
-      <div id="deudas-activas-container">
-        <!-- Se llena con JS -->
-      </div>
+      <div class="deudas-seccion-label">POR PAGAR (Me prestaron)</div>
+      <div id="deudas-por-pagar-container"></div>
+
+      <div class="deudas-seccion-label" style="margin-top: 20px;">POR COBRAR (Presté)</div>
+      <div id="deudas-por-cobrar-container"></div>
 
       <!-- PAGADAS -->
       <div id="deudas-pagadas-section" style="display:none">
@@ -705,6 +708,15 @@
               placeholder="Descripción (opcional)"
               maxlength="60">
 
+        <div class="debt-type-selector" style="display: flex; gap: 16px; margin: 12px 0;">
+          <label style="display: flex; align-items: center; gap: 6px;">
+            <input type="radio" name="debt-type" value="por_pagar" checked> Me prestaron
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px;">
+            <input type="radio" name="debt-type" value="por_cobrar"> Presté
+          </label>
+        </div>
+
         <!-- subtítulo modo restringido -->
         <p class="modal-subtitle" id="modal-deuda-subtitulo" style="display:none"></p>
 
@@ -781,6 +793,16 @@
         <h2 class="actividad-saldo" id="actividad-saldo">
           S/ 0.00
         </h2>
+      </div>
+
+      <!-- BÚSQUEDA Y FILTROS -->
+      <div class="search-filter-bar">
+        <input type="text" id="search-transaction" class="input-field" placeholder="Buscar por categoría..." oninput="filterTransactions()">
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all" onclick="setTypeFilter('all')">Todos</button>
+          <button class="filter-btn" data-filter="gasto" onclick="setTypeFilter('gasto')">Gastos</button>
+          <button class="filter-btn" data-filter="ingreso" onclick="setTypeFilter('ingreso')">Ingresos</button>
+        </div>
       </div>
 
       <!-- TÍTULO Y FILTRO -->
@@ -1068,17 +1090,12 @@
     <div class="subscreen-content">
 
       <div class="subscreen-header">
-        <button class="btn-back" 
-                onclick="navigateBack()">
+        <button class="btn-back" onclick="navigateBack()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l4 4"/><path d="M5 12l4 -4"/></svg>
         </button>
-        <span class="subscreen-title">FinTrack</span>
-        <div style="width:60px"></div>
+        <span class="subscreen-title">Notificaciones</span>
+        <button class="btn-clear-all" onclick="vaciarTodasNotificaciones()">Vaciar todo</button>
       </div>
-
-      <h2 class="editar-titulo" style="text-align:left;margin-bottom:var(--spacing-lg)">
-        Notificaciones
-      </h2>
 
       <div id="notificaciones-lista">
         <!-- Se llena con JS -->
@@ -1182,23 +1199,34 @@
     </div>
   </div><!-- /screen-feedback -->
 
+  <!-- Modal opciones transacción (editar/eliminar) -->
+  <div class="modal-overlay" id="modal-transaction-options" style="display:none" onclick="">
+    <div class="modal-card">
+      <h3 class="modal-title" id="tx-options-title">Opciones</h3>
+      <p class="modal-subtitle" id="tx-options-amount"></p>
+      <button class="btn-primary" onclick="editTransaction()">Editar</button>
+      <button class="btn-primary btn-rojo" onclick="deleteTransactionFromOptions()">Eliminar</button>
+      <button class="btn-ghost" onclick="closeModal('modal-transaction-options')">Cancelar</button>
+    </div>
+  </div>
+
   <!-- Scripts, siempre al final del body -->
-  <script src="js/icons.js"></script>
-  <script src="js/config.js"></script> 
-  <script src="js/storage.js"></script>
-  <script src="js/router.js"></script>
-  <script src="js/toast.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/screens/onboarding.js"></script>
-  <script src="js/screens/home.js"></script>
-  <script src="js/categorias.js"></script>
-  <script src="js/screens/registro.js"></script>
-  <script src="js/screens/deudas.js"></script>
-  <script src="js/screens/actividad.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/screens/perfil.js"></script>
-  <script src="js/screens/notificaciones.js"></script>
-  <script src="js/feedback.js"></script>
+  <script src="js/icons.js" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/router.js" defer></script>
+  <script src="js/toast.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/screens/onboarding.js" defer></script>
+  <script src="js/screens/home.js" defer></script>
+  <script src="js/categorias.js" defer></script>
+  <script src="js/screens/registro.js" defer></script>
+  <script src="js/screens/deudas.js" defer></script>
+  <script src="js/screens/actividad.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/screens/perfil.js" defer></script>
+  <script src="js/screens/notificaciones.js" defer></script>
+  <script src="js/feedback.js" defer></script>
 
   <script>
     if ('serviceWorker' in navigator) {

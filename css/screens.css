@@ -343,6 +343,20 @@ body::after {
   line-height: 1.15;
 }
 
+.greeting-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.greeting-header .greeting-label {
+  margin-bottom: 0;
+}
+
+.greeting-name {
+  margin-top: 12px;
+}
+
 .card {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -1234,6 +1248,54 @@ body::after {
 
 #deuda-fecha-pago-wrap .input-field {
   margin-top: 8px;
+}
+
+/* Estilos para selector de tipo de deuda */
+.debt-type-selector {
+  display: flex;
+  gap: 16px;
+  margin: 12px 0;
+}
+
+.debt-type-selector label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-color-2);
+  border-radius: var(--radius-xl);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.debt-type-selector input[type="radio"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  margin: 0;
+  position: relative;
+  cursor: pointer;
+  background-color: var(--bg-card);
+}
+
+.debt-type-selector input[type="radio"]:checked {
+  border-color: var(--accent-green);
+  background-color: var(--accent-green);
+  box-shadow: inset 0 0 0 4px var(--bg-card);
+}
+
+.debt-type-selector label:has(input:checked) {
+  background: var(--accent-green-dim);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
 }
 
 /* ======================== */
@@ -2538,4 +2600,61 @@ body::after {
 @keyframes slide-from-left {
   from { transform: translateX(-48px); opacity: 0; }
   to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* Ajustes de header y streak */
+.greeting-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.greeting-header .greeting-label {
+  margin-bottom: 0;
+}
+.greeting-name {
+  margin-top: 12px;
+}
+
+/* Estilos para selector de tipo de deuda */
+.debt-type-selector {
+  display: flex;
+  gap: 16px;
+  margin: 12px 0;
+}
+.debt-type-selector label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-color-2);
+  border-radius: var(--radius-xl);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.debt-type-selector input[type="radio"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  margin: 0;
+  position: relative;
+  cursor: pointer;
+  background-color: var(--bg-card);
+}
+.debt-type-selector input[type="radio"]:checked {
+  border-color: var(--accent-green);
+  background-color: var(--accent-green);
+  box-shadow: inset 0 0 0 4px var(--bg-card);
+}
+.debt-type-selector label:has(input:checked) {
+  background: var(--accent-green-dim);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
 }

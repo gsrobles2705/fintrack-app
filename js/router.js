@@ -239,3 +239,16 @@ function _initSwipeNavigation() {
 
 // Boot after DOM is ready
 document.addEventListener('DOMContentLoaded', _initSwipeNavigation);
+
+// NUEVA MEJORA 1: obtener pantalla actual y cerrar modal superior
+function getCurrentScreen() {
+  return document.querySelector('.screen.active')?.id;
+}
+window.getCurrentScreen = getCurrentScreen;
+
+function closeTopModal() {
+  const modals = document.querySelectorAll('.modal-overlay');
+  const openModal = Array.from(modals).find(m => m.style.display === 'flex');
+  if (openModal) closeModal(openModal.id);
+}
+window.closeTopModal = closeTopModal;

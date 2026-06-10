@@ -4,11 +4,9 @@
 const Storage = {
 
   // ---- USER ----
-
   saveUser(userData) {
     localStorage.setItem('fintrack_user', JSON.stringify(userData));
   },
-
   getUser() {
     const data = localStorage.getItem('fintrack_user');
     if (!data) return null;
@@ -20,115 +18,101 @@ const Storage = {
   },
 
   // ---- TRANSACTIONS ----
-
   saveTransactions(transactions) {
     localStorage.setItem('fintrack_transactions', JSON.stringify(transactions));
   },
-
   getTransactions() {
     const data = localStorage.getItem('fintrack_transactions');
     return data ? JSON.parse(data) : [];
   },
-
   addTransaction(transaction) {
     const transactions = this.getTransactions();
     transactions.unshift(transaction);
     this.saveTransactions(transactions);
   },
-
   deleteTransaction(id) {
     const transactions = this.getTransactions();
     this.saveTransactions(transactions.filter(t => t.id !== id));
   },
+  // NUEVA MEJORA 5: actualizar transacción
+  updateTransaction(id, updatedData) {
+    const transactions = this.getTransactions();
+    const index = transactions.findIndex(t => t.id === id);
+    if (index !== -1) {
+      transactions[index] = { ...transactions[index], ...updatedData };
+      this.saveTransactions(transactions);
+      return true;
+    }
+    return false;
+  },
 
   // ---- WEEKLY GOAL ----
-
   saveGoal(goal) {
     localStorage.setItem('fintrack_goal', JSON.stringify(goal));
   },
-
   getGoal() {
     const data = localStorage.getItem('fintrack_goal');
     return data ? JSON.parse(data) : null;
   },
 
   // ---- DAILY BUDGET ----
-
   saveDailyBudget(amount) {
     localStorage.setItem('fintrack_daily_budget', JSON.stringify(amount));
   },
-
   getDailyBudget() {
     const data = localStorage.getItem('fintrack_daily_budget');
     return data ? JSON.parse(data) : null;
   },
 
-  // ---- DEBTS ----
-
+  // ---- DEBTS (con tipo: 'por_pagar' o 'por_cobrar') ----
   saveDebts(debts) {
     localStorage.setItem('fintrack_deudas', JSON.stringify(debts));
   },
-
   getDebts() {
     const data = localStorage.getItem('fintrack_deudas');
     return data ? JSON.parse(data) : [];
   },
-
   addDebt(debt) {
     const debts = this.getDebts();
     debts.unshift(debt);
     this.saveDebts(debts);
   },
-
   updateDebt(id, changes) {
     const debts = this.getDebts();
     const idx = debts.findIndex(d => d.id === id);
     if (idx !== -1) debts[idx] = { ...debts[idx], ...changes };
     this.saveDebts(debts);
   },
-
   deleteDebt(id) {
     this.saveDebts(this.getDebts().filter(d => d.id !== id));
   },
 
   // ---- NOTIFICATIONS ----
-
   saveNotifications(notifications) {
     localStorage.setItem('fintrack_notifications', JSON.stringify(notifications));
   },
-
   getNotifications() {
     const data = localStorage.getItem('fintrack_notifications');
     return data ? JSON.parse(data) : [];
   },
+  // NUEVA MEJORA 3: limpiar todas (usada en vaciar notificaciones)
+  clearAllNotifications() {
+    this.saveNotifications([]);
+  },
 
   // ---- CUSTOM CATEGORIES ----
-  //
-  // Stored structure:
-  // {
-  //   expenses: [{ id, label, iconKey, custom: true }, ...],
-  //   income:   [{ id, label, iconKey, custom: true }, ...]
-  // }
-  //
-  // System categories (food, transport, etc.) are NOT stored here —
-  // they are defined in categorias.js and merged at runtime.
-  // Only custom ones are persisted.
-
   saveCustomCategories(data) {
     localStorage.setItem('fintrack_categorias_custom', JSON.stringify(data));
   },
-
   getCustomCategories() {
     const data = localStorage.getItem('fintrack_categorias_custom');
     return data ? JSON.parse(data) : { gastos: [], ingresos: [] };
   },
 
   // ---- QUICK AMOUNTS ----
-
   saveQuickAmounts(amounts) {
     localStorage.setItem('fintrack_quick_amounts', JSON.stringify(amounts));
   },
-
   getQuickAmounts() {
     const data = localStorage.getItem('fintrack_quick_amounts');
     return data ? JSON.parse(data) : [2, 5, 10, 20, 50, 25];
@@ -143,7 +127,7 @@ const Storage = {
     return stored ? JSON.parse(stored) : null;
   },
 
-  // ---- MIGRATION for old transactions (add categoryLabel and categoryIcon) ----
+  // ---- MIGRATION ----
   migrateTransactions() {
     try {
       const transactions = this.getTransactions();
@@ -181,16 +165,14 @@ const Storage = {
     }
   },
 
-  // ---- UNIFIED CATEGORIES (base + custom) ----
+  // ---- UNIFIED CATEGORIES ----
   saveAllCategories(data) {
     localStorage.setItem('fintrack_all_categories', JSON.stringify(data));
   },
-
   getAllCategories() {
     const stored = localStorage.getItem('fintrack_all_categories');
     return stored ? JSON.parse(stored) : null;
   },
-
   initCategoriesFromBase(baseExpense, baseIncome) {
     const all = {
       expense: baseExpense.map(cat => ({ ...cat, custom: false })),
@@ -201,19 +183,16 @@ const Storage = {
     this.saveActiveCategories('income', all.income.map(c => c.id));
     return all;
   },
-
   getCategoriesByType(type) {
     const all = this.getAllCategories();
     if (!all) return [];
     return all[type] || [];
   },
-
   saveCategoriesByType(type, categories) {
     const all = this.getAllCategories() || { expense: [], income: [] };
     all[type] = categories;
     this.saveAllCategories(all);
   },
-
   addCustomCategory(type, category) {
     const categories = this.getCategoriesByType(type);
     categories.push({ ...category, custom: true });
@@ -224,7 +203,6 @@ const Storage = {
       this.saveActiveCategories(type, active);
     }
   },
-
   updateCategory(type, id, updates) {
     const categories = this.getCategoriesByType(type);
     const index = categories.findIndex(c => c.id === id);
@@ -233,7 +211,6 @@ const Storage = {
       this.saveCategoriesByType(type, categories);
     }
   },
-
   deleteCategory(type, id) {
     let categories = this.getCategoriesByType(type);
     const newCategories = categories.filter(c => c.id !== id);
@@ -244,7 +221,6 @@ const Storage = {
     this.saveActiveCategories(type, active);
     return true;
   },
-  
   restoreBaseCategories(type, baseCatalogue) {
     const current = this.getCategoriesByType(type);
     const existingIds = current.map(c => c.id);
@@ -258,8 +234,30 @@ const Storage = {
     this.saveActiveCategories(type, active);
   },
 
-  // ---- UTILITY ----
+  // ---- STREAK (NUEVA MEJORA 10) ----
+  getStreak() {
+    const streak = localStorage.getItem('fintrack_streak');
+    return streak ? JSON.parse(streak) : { count: 0, lastDate: null };
+  },
+  updateStreak(hasActivityToday) {
+    const streak = this.getStreak();
+    const today = new Date().toDateString();
+    // Si ya se actualizó hoy, no hacer nada
+    if (streak.lastDate === today) return streak;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const wasYesterday = streak.lastDate === yesterday.toDateString();
+    if (hasActivityToday) {
+      streak.count = wasYesterday ? streak.count + 1 : 1;
+      streak.lastDate = today;
+    } else if (!wasYesterday && streak.lastDate !== today) {
+      streak.count = 0;
+    }
+    localStorage.setItem('fintrack_streak', JSON.stringify(streak));
+    return streak;
+  },
 
+  // ---- UTILITY ----
   clearAll() {
     localStorage.removeItem('fintrack_user');
     localStorage.removeItem('fintrack_transactions');
@@ -269,5 +267,6 @@ const Storage = {
     localStorage.removeItem('fintrack_notifications');
     localStorage.removeItem('fintrack_categorias_custom');
     localStorage.removeItem('fintrack_quick_amounts');
+    localStorage.removeItem('fintrack_streak');
   }
 };
