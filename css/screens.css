@@ -2658,3 +2658,57 @@ body::after {
   border-color: var(--accent-green);
   color: var(--accent-green);
 }
+
+/* Notif page header */
+.notif-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) 0 var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.notif-page-title {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+  color: var(--text-primary);
+}
+
+.notif-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(240, 84, 84, 0.08);
+  border: 1px solid rgba(240, 84, 84, 0.25);
+  border-radius: var(--radius-xl);
+  color: var(--accent-red);
+  font-family: var(--font-main);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.notif-clear-btn svg { stroke: var(--accent-red); }
+.notif-clear-btn:active { background: rgba(240, 84, 84, 0.18); }
+
+/* Notif card swipe — necesita overflow visible para animar */
+.notif-card {
+  overflow: hidden; /* ya existe, asegurarse */
+  will-change: transform, opacity;
+}
+/* ======================== */
+/*  SEARCH + FILTER ALIGN   */
+/* ======================== */
+/* Alinea verticalmente el botón de filtro con el input de búsqueda */
+.search-filter-bar {
+  align-items: center;
+}
+
+.filter-dropdown-btn {
+  height: 52px;  /* misma altura que .input-field con padding:16px */
+  padding-top: 0;
+  padding-bottom: 0;
+}

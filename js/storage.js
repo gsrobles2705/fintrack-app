@@ -234,25 +234,37 @@ const Storage = {
     this.saveActiveCategories(type, active);
   },
 
-  // ---- STREAK (NUEVA MEJORA 10) ----
+  // ---- STREAK ----
   getStreak() {
     const streak = localStorage.getItem('fintrack_streak');
-    return streak ? JSON.parse(streak) : { count: 0, lastDate: null };
+    return streak ? JSON.parse(streak) : { count: 0, lastDate: null, firstDate: null };
   },
   updateStreak(hasActivityToday) {
-    const streak = this.getStreak();
-    const today = new Date().toDateString();
-    // Si ya se actualizó hoy, no hacer nada
+    const streak  = this.getStreak();
+    const today   = new Date().toDateString();
+
+    // Si ya registramos actividad hoy, no hacer nada
     if (streak.lastDate === today) return streak;
+
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const wasYesterday = streak.lastDate === yesterday.toDateString();
-    if (hasActivityToday) {
-      streak.count = wasYesterday ? streak.count + 1 : 1;
+
+    if (!streak.firstDate) {
+      // Primera apertura: guardar día 0 (no mostramos racha todavía)
+      streak.firstDate = today;
+      streak.lastDate  = today;
+      streak.count     = 0;
+    } else if (wasYesterday) {
+      // Día consecutivo → incrementar
+      streak.count    = streak.count + 1;
       streak.lastDate = today;
-    } else if (!wasYesterday && streak.lastDate !== today) {
-      streak.count = 0;
+    } else {
+      // Racha rota o primer registro del día sin continuidad
+      streak.count    = 1;
+      streak.lastDate = today;
     }
+
     localStorage.setItem('fintrack_streak', JSON.stringify(streak));
     return streak;
   },

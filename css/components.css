@@ -423,8 +423,8 @@
 .cat-toggle-switch {
   position: relative;
   display: inline-block;
-  width: 40px;
-  height: 20px;
+  width: 44px;
+  height: 24px;
   flex-shrink: 0;
 }
 
@@ -436,36 +436,47 @@
   position: absolute;
 }
 
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--border-color);
+  border-radius: 24px;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1),
+              width 0.15s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+
+/* Pressed: pill effect */
+.cat-toggle-switch:active .toggle-slider:before {
+  width: 22px;
+}
+
 .cat-toggle-switch input:checked + .toggle-slider {
   background-color: var(--accent-green);
+  box-shadow: 0 0 10px var(--accent-green-glow);
 }
 
 .cat-toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(20px);
 }
 
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--border-color);
-  border-radius: 20px;
-  transition: background-color 0.2s ease;
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  border-radius: 50%;
-  transition: transform 0.2s ease !important;
+/* Pressed while checked: pill goes left */
+.cat-toggle-switch:active input:checked + .toggle-slider:before {
+  transform: translateX(17px);
+  width: 22px;
 }
 
 .cat-group-title {
@@ -511,20 +522,56 @@
   display: flex;
   align-items: center;
   margin-left: auto;
-  margin-right: 8px;
 }
 
 .streak-badge {
-  background: rgba(255, 176, 58, 0.12);
-  border-radius: 40px;
-  padding: 4px 10px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  background: linear-gradient(135deg, rgba(255,64,64,0.15) 0%, rgba(255,176,58,0.15) 100%);
+  border: 1px solid rgba(255,140,0,0.3);
+  border-radius: 999px;
+  padding: 5px 12px 5px 8px;
+  cursor: default;
+  transform: scale(0.8);
+  opacity: 0;
+  transition: none;
 }
 
-.streak-icon { font-size: 16px; }
-.streak-count { font-size: 13px; font-weight: 700; color: #FFB03A; }
+.streak-badge.streak-animate {
+  animation: streak-pop 0.45s cubic-bezier(0.34, 1.5, 0.64, 1) forwards;
+}
+
+@keyframes streak-pop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.12); opacity: 1; }
+  80%  { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.streak-fire {
+  font-size: 18px;
+  line-height: 1;
+  animation: fire-flicker 1.8s ease-in-out infinite;
+}
+
+@keyframes fire-flicker {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  25%       { transform: scale(1.12) rotate(2deg); }
+  50%       { transform: scale(0.95) rotate(-1deg); }
+  75%       { transform: scale(1.08) rotate(1deg); }
+}
+
+.streak-number {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #FF4040 0%, #FF9500 50%, #FFD700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
 
 /* Growth indicator */
 .growth-indicator {
@@ -619,4 +666,191 @@
 
 .filter-buttons {
   flex: 1;
+}
+
+/* Filter type select */
+.filter-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.filter-type-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color-2);
+  border-radius: var(--radius-xl);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 32px 10px 14px;
+  cursor: pointer;
+  outline: none;
+  white-space: nowrap;
+}
+
+.filter-type-select:focus {
+  border-color: var(--accent-green);
+}
+
+.filter-select-chevron {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  stroke: var(--text-tertiary);
+}
+
+/* ── Custom filter dropdown ── */
+.search-input { flex: 1; min-width: 0; }
+
+.filter-dropdown-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.filter-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color-2);
+  border-radius: var(--radius-xl);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.filter-dropdown-btn svg { stroke: var(--text-tertiary); transition: transform 0.2s; }
+.filter-dropdown-btn.open { border-color: var(--accent-green); color: var(--accent-green); }
+.filter-dropdown-btn.open svg { transform: rotate(180deg); stroke: var(--accent-green); }
+
+.filter-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--bg-card-high);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  min-width: 120px;
+  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  overflow: hidden;
+  animation: dropdown-appear 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes dropdown-appear {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.filter-dropdown-item {
+  padding: 13px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color-2);
+  transition: background 0.12s, color 0.12s;
+}
+
+.filter-dropdown-item:last-child { border-bottom: none; }
+.filter-dropdown-item:active { background: var(--bg-card-2); }
+.filter-dropdown-item.active {
+  color: var(--accent-green);
+  font-weight: 700;
+  background: var(--accent-green-dim);
+}
+
+/* ======================== */
+/*   PASOS (STEPS) PARA MODALES DE INSTALACIÓN */
+/* ======================== */
+
+.step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.step-num {
+  min-width: 28px;
+  height: 28px;
+  background: var(--accent-green-dim);
+  border: 1px solid rgba(80,200,120,0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent-green);
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  padding-top: 3px;
+}
+
+.step-text strong {
+  color: var(--text-primary);
+}
+
+/* Pill (badge pequeño) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* Nota de advertencia/informativa (estilo consistente) */
+.install-note {
+  background: rgba(255,176,58,0.08);
+  border: 1px solid rgba(255,176,58,0.25);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin: 12px 0 8px;
+}
+
+.install-note-content {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.install-note-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.install-note-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.install-note-text strong {
+  color: #FFB03A;
+}
+
+.install-note-text .android-highlight {
+  color: var(--accent-green);
 }

@@ -1,4 +1,4 @@
-// deudas.js - versión definitiva con Cuentas por Cobrar / Pagar y lógica de saldo
+// deudas.js
 
 let editingDebtId   = null;
 let debtOptionsId   = null;
@@ -23,39 +23,66 @@ function renderDeudas() {
   const symbol = user.symbol;
   document.getElementById('deudas-avatar').textContent = user.name.charAt(0).toUpperCase();
 
-  const porPagar = debts.filter(d => !d.paid && d.tipo === 'por_pagar');
+  const porPagar  = debts.filter(d => !d.paid && d.tipo === 'por_pagar');
   const porCobrar = debts.filter(d => !d.paid && d.tipo === 'por_cobrar');
-  const paid = debts.filter(d => d.paid);
+  const paid      = debts.filter(d => d.paid);
 
-  const total = porPagar.reduce((s, d) => s + d.amount, 0) + porCobrar.reduce((s, d) => s + d.amount, 0);
+  // "Total pendiente" solo incluye lo que YO debo (por_pagar)
+  const total = porPagar.reduce((s, d) => s + d.amount, 0);
   const totalEl = document.getElementById('deudas-total');
   totalEl.textContent = `${symbol} ${total.toFixed(2)}`;
   totalEl.className = total === 0 ? 'deudas-total sin-deudas' : 'deudas-total';
 
   document.getElementById('deudas-empty').style.display = debts.length === 0 ? 'block' : 'none';
 
-  document.getElementById('deudas-por-pagar-container').innerHTML = porPagar.map(d => renderDebtCard(d, symbol, false, 'por_pagar')).join('');
-  document.getElementById('deudas-por-cobrar-container').innerHTML = porCobrar.map(d => renderDebtCard(d, symbol, false, 'por_cobrar')).join('');
+  document.getElementById('deudas-por-pagar-container').innerHTML =
+    porPagar.map(d => renderDebtCard(d, symbol, false)).join('');
+  document.getElementById('deudas-por-cobrar-container').innerHTML =
+    porCobrar.map(d => renderDebtCard(d, symbol, false)).join('');
+
   const paidSection = document.getElementById('deudas-pagadas-section');
   paidSection.style.display = paid.length > 0 ? 'block' : 'none';
-  document.getElementById('deudas-pagadas-container').innerHTML = paid.map(d => renderDebtCard(d, symbol, true, d.tipo)).join('');
+  document.getElementById('deudas-pagadas-container').innerHTML =
+    paid.map(d => renderDebtCard(d, symbol, true)).join('');
 }
 
-function renderDebtCard(debt, currency, isPaid, tipo) {
+function renderDebtCard(debt, currency, isPaid) {
+  const tipo = debt.tipo;
+  const isCobrar = tipo === 'por_cobrar';
   const dueDate = parseDateDisplay(debt.dueDate);
   const isOverdue = !isPaid && dueDate < new Date();
   const dueDateStr = dueDate.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
+
   let datesHtml = '';
   if (isPaid && debt.paidDate) {
     const paidDate = parseDateDisplay(debt.paidDate);
     const paidDateStr = paidDate.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
     const onTime = paidDate <= dueDate;
-    const tag = onTime ? `<span class="deuda-tag ok">A tiempo</span>` : `<span class="deuda-tag tarde">Con retraso</span>`;
-    datesHtml = `<div class="deuda-fechas-pagada"><div class="deuda-fecha">Fecha límite: ${dueDateStr}</div><div class="deuda-fecha">Pagada el: ${paidDateStr} ${tag}</div></div>`;
+    const tag = onTime
+      ? `<span class="deuda-tag ok">A tiempo</span>`
+      : `<span class="deuda-tag tarde">Con retraso</span>`;
+    datesHtml = `<div class="deuda-fechas-pagada">
+      <div class="deuda-fecha">Fecha límite: ${dueDateStr}</div>
+      <div class="deuda-fecha">Pagada el: ${paidDateStr} ${tag}</div>
+    </div>`;
   } else {
     datesHtml = `<div class="deuda-fecha ${isOverdue ? 'vencida' : ''}">${isOverdue ? 'Venció:' : 'Vence:'} ${dueDateStr}</div>`;
   }
-  const tipoLabel = tipo === 'por_pagar' ? 'Me prestaron' : 'Presté';
+
+  const tipoLabel = isCobrar ? 'Presté' : 'Me prestaron';
+  // Monto: verde si es por_cobrar (me deben), rojo si por_pagar (debo)
+  const montoClass = isPaid ? 'pagada' : (isCobrar ? 'cobrar' : '');
+  // Botón acción
+  let accionHtml = '';
+  if (!isPaid) {
+    const btnLabel = isCobrar ? 'Cobrar' : 'Pagar';
+    accionHtml = `<div class="deuda-acciones">
+      <button class="btn-pagar ${isCobrar ? 'btn-cobrar' : ''}" onclick="payDebt('${debt.id}')">${btnLabel}</button>
+    </div>`;
+  } else {
+    accionHtml = `<div class="deuda-pagada-badge">Pagada</div>`;
+  }
+
   return `
     <div class="deuda-card ${isPaid ? 'pagada' : ''}">
       <div class="deuda-card-header">
@@ -66,25 +93,22 @@ function renderDebtCard(debt, currency, isPaid, tipo) {
         </div>
         <button class="btn-deuda-menu" onclick="showDebtOptions('${debt.id}')">⋮</button>
       </div>
-      <p class="deuda-monto ${isPaid ? 'pagada' : ''}">${currency} ${debt.amount.toFixed(2)}</p>
+      <p class="deuda-monto ${montoClass}">${currency} ${debt.amount.toFixed(2)}</p>
       <div class="deuda-card-footer">
         ${datesHtml}
-        ${!isPaid ? `<div class="deuda-acciones"><button class="btn-pagar" onclick="payDebt('${debt.id}')">Pagar</button></div>` : `<div class="deuda-pagada-badge">Pagada</div>`}
+        ${accionHtml}
       </div>
     </div>`;
 }
 
 function escapeHtml(str) {
   if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
-  });
+  return str.replace(/[&<>]/g, m =>
+    m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'
+  );
 }
 
-// ---- OPCIONES DE DEUDA ----
+// ─── Opciones de deuda ────────────────────────────────────────────
 function showDebtOptions(id) {
   debtOptionsId = id;
   const debt = Storage.getDebts().find(d => d.id === id);
@@ -92,6 +116,7 @@ function showDebtOptions(id) {
   const symbol = user.symbol;
   const titleEl = document.getElementById('modal-opciones-titulo');
   titleEl.textContent = debt ? debt.person : 'Opciones';
+
   let subtitleEl = document.getElementById('modal-opciones-subtitulo');
   if (!subtitleEl) {
     subtitleEl = document.createElement('p');
@@ -106,24 +131,29 @@ function showDebtOptions(id) {
   } else {
     subtitleEl.style.display = 'none';
   }
+
   const buttonsEl = document.getElementById('modal-opciones-botones');
   buttonsEl.innerHTML = debt?.paid
-    ? `
-      <button class="btn-primary btn-verde" onclick="editFromOptions()">Editar deuda</button>
-      <button class="btn-primary btn-eliminar-pago" onclick="removePaymentFromOptions()">Eliminar pago</button>
-      <button class="btn-primary btn-rojo" onclick="deleteDebtFromOptions()">Eliminar deuda</button>
-      <button class="btn-ghost" onclick="closeDebtOptions()">Cancelar</button>`
-    : `
-      <button class="btn-primary btn-verde" onclick="editFromOptions()">Editar deuda</button>
-      <button class="btn-primary btn-rojo" onclick="deleteDebtFromOptions()">Eliminar deuda</button>
-      <button class="btn-ghost" onclick="closeDebtOptions()">Cancelar</button>`;
-  document.getElementById('modal-opciones-deuda').style.display = 'flex';
+    ? `<button class="btn-primary btn-verde" onclick="editFromOptions()">Editar deuda</button>
+       <button class="btn-primary btn-eliminar-pago" onclick="removePaymentFromOptions()">Eliminar pago</button>
+       <button class="btn-primary btn-rojo" onclick="deleteDebtFromOptions()">Eliminar deuda</button>
+       <button class="btn-ghost" onclick="closeDebtOptions()">Cancelar</button>`
+    : `<button class="btn-primary btn-verde" onclick="editFromOptions()">Editar deuda</button>
+       <button class="btn-primary btn-rojo" onclick="deleteDebtFromOptions()">Eliminar deuda</button>
+       <button class="btn-ghost" onclick="closeDebtOptions()">Cancelar</button>`;
+
+  const modal = document.getElementById('modal-opciones-deuda');
+  modal.style.display = 'flex';
+  modal.onclick = (e) => { if (e.target === modal) closeDebtOptions(); };
 }
 
 function editFromOptions() {
   const id = debtOptionsId;
   closeDebtOptions();
-  showDebtModal(id);
+  // Navegar a Deudas y abrir el modal de edición
+  navigate(SCREENS.DEUDAS);
+  // Pequeño delay para asegurar que el render de deudas termine
+  setTimeout(() => showDebtModal(id), 80);
 }
 
 async function removePaymentFromOptions() {
@@ -131,7 +161,14 @@ async function removePaymentFromOptions() {
   closeDebtOptions();
   const debt = Storage.getDebts().find(d => d.id === id);
   if (!debt || !debt.paid) return;
-  const ok = await AppConfirm({ titulo: 'Eliminar pago', mensaje: 'La deuda volverá a estar pendiente y el monto se eliminará del historial.', tipo: 'warning', btnOk: 'Sí, eliminar pago' });
+  const dueDateStr = parseDateDisplay(debt.dueDate).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
+  const desc = debt.description ? ` · ${debt.description}` : '';
+  const ok = await AppConfirm({
+    titulo: 'Eliminar pago',
+    mensaje: `La deuda de ${debt.person}${desc} · Fecha límite ${dueDateStr} volverá a estado pendiente y el monto se eliminará del historial.`,
+    tipo: 'warning',
+    btnOk: 'Sí, eliminar pago'
+  });
   if (!ok) return;
   if (debt.transactionId) Storage.deleteTransaction(debt.transactionId);
   Storage.updateDebt(id, { paid: false, paidDate: null, transactionId: null });
@@ -144,9 +181,24 @@ async function deleteDebtFromOptions() {
   closeDebtOptions();
   const debt = Storage.getDebts().find(d => d.id === id);
   if (!debt) return;
-  const ok = await AppConfirm({ titulo: 'Eliminar deuda', mensaje: `Se eliminará la deuda con ${debt.person} de forma permanente.${debt.paid ? ' El pago vinculado también se eliminará.' : ''}`, tipo: 'danger', btnOk: 'Sí, eliminar' });
+  const dueDateStr = parseDateDisplay(debt.dueDate).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
+  const desc = debt.description ? ` · ${debt.description}` : '';
+  const extra = debt.paid ? ' El pago vinculado también se eliminará.' : '';
+  const ok = await AppConfirm({
+    titulo: 'Eliminar deuda',
+    mensaje: `Esta acción eliminará la deuda: ${debt.person}${desc} · ${dueDateStr}.${extra}`,
+    tipo: 'danger',
+    btnOk: 'Sí, eliminar'
+  });
   if (!ok) return;
   if (debt.paid && debt.transactionId) Storage.deleteTransaction(debt.transactionId);
+  // También eliminar la transacción de creación del préstamo
+  const allTx = Storage.getTransactions();
+  const creationTx = allTx.find(t =>
+    (t.category === 'prestamo_recibido' || t.category === 'prestamo_otorgado') &&
+    Math.abs(new Date(t.date) - new Date(debt.date)) < 3000
+  );
+  if (creationTx) Storage.deleteTransaction(creationTx.id);
   Storage.deleteDebt(id);
   renderDeudas();
   Toast.success('Deuda eliminada', `La deuda con ${debt.person} fue eliminada.`);
@@ -157,32 +209,45 @@ function closeDebtOptions() {
   debtOptionsId = null;
 }
 
-// ---- PAGAR DEUDA ----
+// ─── Pagar / Cobrar deuda ─────────────────────────────────────────
 function payDebt(id) {
   payingDebtId = id;
   const debt = Storage.getDebts().find(d => d.id === id);
   if (!debt) return;
   const user = Storage.getUser();
-  document.getElementById('modal-pago-texto').textContent = `¿Marcar la deuda con ${debt.person} (${user.symbol}${debt.amount.toFixed(2)}) como pagada?`;
-  document.getElementById('modal-confirmar-pago').style.display = 'flex';
+  const verb = debt.tipo === 'por_cobrar' ? 'cobrar' : 'pagar';
+  document.getElementById('modal-pago-texto').textContent =
+    `¿Marcar la deuda con ${debt.person} (${user.symbol}${debt.amount.toFixed(2)}) como ${verb === 'cobrar' ? 'cobrada' : 'pagada'}?`;
+
+  const modal = document.getElementById('modal-confirmar-pago');
+  modal.style.display = 'flex';
+  modal.onclick = (e) => { if (e.target === modal) closePayModal(); };
 }
 
 function confirmPayment() {
   if (!payingDebtId) return;
   const debt = Storage.getDebts().find(d => d.id === payingDebtId);
   if (!debt) return;
-  // Transacción contraria para corregir saldo
+  // Transacción inversa para cuadrar saldo
+  // por_pagar: al pagar sale dinero (gasto) — devuelve el ingreso que entró
+  // por_cobrar: al cobrar entra dinero (ingreso) — devuelve el gasto que salió
   const transaction = {
     id: Date.now().toString(),
     type: debt.tipo === 'por_pagar' ? 'gasto' : 'ingreso',
     amount: debt.amount,
     category: debt.tipo === 'por_pagar' ? 'pago_prestamo' : 'cobro_prestamo',
-    categoryLabel: debt.tipo === 'por_pagar' ? 'Pago de préstamo' : 'Cobro de préstamo',
+    categoryLabel: debt.tipo === 'por_pagar'
+      ? `Pago a ${debt.person}`
+      : `Cobro de ${debt.person}`,
     categoryIcon: 'deuda',
     date: new Date().toISOString()
   };
   Storage.addTransaction(transaction);
-  Storage.updateDebt(payingDebtId, { paid: true, paidDate: new Date().toISOString(), transactionId: transaction.id });
+  Storage.updateDebt(payingDebtId, {
+    paid: true,
+    paidDate: new Date().toISOString(),
+    transactionId: transaction.id
+  });
   closePayModal();
   renderDeudas();
   Toast.success('Actualizado', 'El saldo se ha ajustado correctamente.');
@@ -194,20 +259,24 @@ function closePayModal() {
   payingDebtId = null;
 }
 
-// ---- MODAL NUEVA/EDITAR DEUDA ----
+// ─── Modal Nueva / Editar Deuda ───────────────────────────────────
 function showDebtModal(id = null) {
   editingDebtId = id;
-  ['deuda-input-monto', 'deuda-input-persona', 'deuda-input-fecha', 'deuda-input-descripcion', 'deuda-input-fecha-pago'].forEach(elId => {
+  ['deuda-input-monto', 'deuda-input-persona', 'deuda-input-fecha',
+   'deuda-input-descripcion', 'deuda-input-fecha-pago'].forEach(elId => {
     const el = document.getElementById(elId);
     if (el) el.value = '';
   });
   _clearDebtErrors();
+
   const amountInput = document.getElementById('deuda-input-monto');
   if (amountInput) amountInput.placeholder = `${getCurrencySymbol()} 0.00`;
-  const titleEl = document.getElementById('modal-deuda-titulo');
-  const subtitleEl = document.getElementById('modal-deuda-subtitulo');
+
+  const titleEl      = document.getElementById('modal-deuda-titulo');
+  const subtitleEl   = document.getElementById('modal-deuda-subtitulo');
   const paidDateWrap = document.getElementById('deuda-fecha-pago-wrap');
-  const tipoRadios = document.querySelectorAll('input[name="debt-type"]');
+  const tipoRadios   = document.querySelectorAll('input[name="debt-type"]');
+
   if (tipoRadios.length) {
     tipoRadios.forEach(r => r.disabled = false);
     document.querySelector('input[name="debt-type"][value="por_pagar"]').checked = true;
@@ -219,12 +288,12 @@ function showDebtModal(id = null) {
     if (debt.paid) {
       titleEl.textContent = 'Editar Deuda Pagada';
       if (subtitleEl) { subtitleEl.textContent = 'Solo puedes editar la descripción y la fecha real de pago.'; subtitleEl.style.display = 'block'; }
-      document.getElementById('deuda-input-monto').value = debt.amount;
+      document.getElementById('deuda-input-monto').value   = debt.amount;
       document.getElementById('deuda-input-persona').value = debt.person;
-      document.getElementById('deuda-input-fecha').value = debt.dueDate.split('T')[0];
-      document.getElementById('deuda-input-monto').disabled = true;
+      document.getElementById('deuda-input-fecha').value   = debt.dueDate.split('T')[0];
+      document.getElementById('deuda-input-monto').disabled   = true;
       document.getElementById('deuda-input-persona').disabled = true;
-      document.getElementById('deuda-input-fecha').disabled = true;
+      document.getElementById('deuda-input-fecha').disabled   = true;
       if (tipoRadios.length) tipoRadios.forEach(r => r.disabled = true);
       document.getElementById('deuda-input-descripcion').value = debt.description || '';
       if (paidDateWrap) paidDateWrap.style.display = 'block';
@@ -233,30 +302,33 @@ function showDebtModal(id = null) {
     } else {
       titleEl.textContent = 'Editar Deuda';
       if (subtitleEl) subtitleEl.style.display = 'none';
-      document.getElementById('deuda-input-monto').disabled = false;
+      document.getElementById('deuda-input-monto').disabled   = false;
       document.getElementById('deuda-input-persona').disabled = false;
-      document.getElementById('deuda-input-fecha').disabled = false;
+      document.getElementById('deuda-input-fecha').disabled   = false;
       if (tipoRadios.length) tipoRadios.forEach(r => r.disabled = false);
-      document.getElementById('deuda-input-monto').value = debt.amount;
+      document.getElementById('deuda-input-monto').value   = debt.amount;
       document.getElementById('deuda-input-persona').value = debt.person;
-      document.getElementById('deuda-input-fecha').value = debt.dueDate.split('T')[0];
+      document.getElementById('deuda-input-fecha').value   = debt.dueDate.split('T')[0];
       document.getElementById('deuda-input-descripcion').value = debt.description || '';
       if (paidDateWrap) paidDateWrap.style.display = 'none';
-      // Seleccionar el radio correcto
       if (tipoRadios.length) {
-        document.querySelector(`input[name="debt-type"][value="${debt.tipo}"]`).checked = true;
+        const radio = document.querySelector(`input[name="debt-type"][value="${debt.tipo}"]`);
+        if (radio) radio.checked = true;
       }
     }
   } else {
     titleEl.textContent = 'Nueva Deuda';
     if (subtitleEl) subtitleEl.style.display = 'none';
-    document.getElementById('deuda-input-monto').disabled = false;
+    document.getElementById('deuda-input-monto').disabled   = false;
     document.getElementById('deuda-input-persona').disabled = false;
-    document.getElementById('deuda-input-fecha').disabled = false;
+    document.getElementById('deuda-input-fecha').disabled   = false;
     if (tipoRadios.length) tipoRadios.forEach(r => r.disabled = false);
     if (paidDateWrap) paidDateWrap.style.display = 'none';
   }
-  document.getElementById('modal-deuda').style.display = 'flex';
+
+  const modal = document.getElementById('modal-deuda');
+  modal.style.display = 'flex';
+  modal.onclick = (e) => { if (e.target === modal) closeDebtModal(); };
 }
 
 function closeDebtModal() {
@@ -270,9 +342,9 @@ function closeDebtModal() {
 }
 
 const _DEBT_ERROR_PAIRS = [
-  ['deuda-input-monto', 'error-deuda-monto'],
-  ['deuda-input-persona', 'error-deuda-persona'],
-  ['deuda-input-fecha', 'error-deuda-fecha'],
+  ['deuda-input-monto',      'error-deuda-monto'],
+  ['deuda-input-persona',    'error-deuda-persona'],
+  ['deuda-input-fecha',      'error-deuda-fecha'],
   ['deuda-input-fecha-pago', 'error-deuda-fecha-pago']
 ];
 
@@ -287,7 +359,7 @@ function guardarDeuda() {
     Toast.error('Selecciona tipo', 'Indica si te prestaron o prestaste.');
     return;
   }
-  const tipo = tipoRadio.value;
+  const tipo        = tipoRadio.value;
   const description = document.getElementById('deuda-input-descripcion').value.trim();
 
   if (editingDebtId) {
@@ -309,7 +381,7 @@ function guardarDeuda() {
     } else {
       const amount = parseFloat(document.getElementById('deuda-input-monto').value);
       const person = document.getElementById('deuda-input-persona').value.trim();
-      const date = document.getElementById('deuda-input-fecha').value;
+      const date   = document.getElementById('deuda-input-fecha').value;
       let hasError = false;
       if (!amount || amount <= 0) {
         setFieldError('deuda-input-monto', 'error-deuda-monto', amount < 0 ? 'El monto no puede ser negativo' : 'Ingresa un monto mayor a 0');
@@ -334,7 +406,7 @@ function guardarDeuda() {
     // Nueva deuda
     const amount = parseFloat(document.getElementById('deuda-input-monto').value);
     const person = document.getElementById('deuda-input-persona').value.trim();
-    const date = document.getElementById('deuda-input-fecha').value;
+    const date   = document.getElementById('deuda-input-fecha').value;
     let hasError = false;
     if (!amount || amount <= 0) {
       setFieldError('deuda-input-monto', 'error-deuda-monto', amount < 0 ? 'El monto no puede ser negativo' : 'Ingresa un monto mayor a 0');
@@ -351,20 +423,26 @@ function guardarDeuda() {
     if (hasError) return;
 
     const dueDateISO = parseLocalDate(date);
+    const newDebtId  = Date.now().toString();
+    const debtDate   = new Date().toISOString();
+
     Storage.addDebt({
-      id: Date.now().toString(),
-      amount, person, dueDate: dueDateISO, description, tipo,
-      paid: false, date: new Date().toISOString()
+      id: newDebtId, amount, person, dueDate: dueDateISO, description, tipo,
+      paid: false, date: debtDate
     });
-    // Transacción automática para afectar el saldo real
+
+    // Transacción automática con nombre de persona incluido
+    const txLabel = tipo === 'por_pagar'
+      ? `Préstamo de ${person}`
+      : `Préstamo a ${person}`;
     const transaction = {
-      id: Date.now().toString(),
-      type: tipo === 'por_pagar' ? 'ingreso' : 'gasto',
-      amount: amount,
-      category: tipo === 'por_pagar' ? 'prestamo_recibido' : 'prestamo_otorgado',
-      categoryLabel: tipo === 'por_pagar' ? 'Préstamo recibido' : 'Préstamo otorgado',
-      categoryIcon: 'deuda',
-      date: new Date().toISOString()
+      id: (Date.now() + 1).toString(),
+      type:          tipo === 'por_pagar' ? 'ingreso' : 'gasto',
+      amount,
+      category:      tipo === 'por_pagar' ? 'prestamo_recibido' : 'prestamo_otorgado',
+      categoryLabel: txLabel,
+      categoryIcon:  'deuda',
+      date:          debtDate
     };
     Storage.addTransaction(transaction);
     closeDebtModal();
@@ -373,15 +451,35 @@ function guardarDeuda() {
   }
 }
 
-// Alias globales
-window.mostrarModalDeuda = showDebtModal;
-window.guardarDeuda = guardarDeuda;
-window.cerrarModalDeuda = closeDebtModal;
-window.showDebtOptions = showDebtOptions;
-window.editFromOptions = editFromOptions;
+// ─── CSS extra para btn-cobrar (verde) ────────────────────────────
+(function injectDebtStyles() {
+  if (document.getElementById('deudas-extra-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'deudas-extra-styles';
+  style.textContent = `
+    .deuda-monto.cobrar { color: var(--accent-green); }
+    .btn-cobrar {
+      background: var(--accent-green-dim) !important;
+      border-color: var(--accent-green) !important;
+      color: var(--accent-green) !important;
+    }
+    .btn-cobrar:active { background: var(--accent-green) !important; color: #000 !important; }
+    .deuda-tipo-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; letter-spacing: 0.3px; display: inline-block; margin-top: 4px; }
+    .deuda-tipo-badge.por_pagar { background: rgba(240,84,84,.12); color: var(--accent-red); }
+    .deuda-tipo-badge.por_cobrar { background: rgba(80,200,120,.12); color: var(--accent-green); }
+  `;
+  document.head.appendChild(style);
+})();
+
+// ─── Alias globales ───────────────────────────────────────────────
+window.mostrarModalDeuda      = showDebtModal;
+window.guardarDeuda           = guardarDeuda;
+window.cerrarModalDeuda       = closeDebtModal;
+window.showDebtOptions        = showDebtOptions;
+window.editFromOptions        = editFromOptions;
 window.removePaymentFromOptions = removePaymentFromOptions;
-window.deleteDebtFromOptions = deleteDebtFromOptions;
-window.closeDebtOptions = closeDebtOptions;
-window.payDebt = payDebt;
-window.confirmarPago = confirmPayment;
-window.cerrarModalPago = closePayModal;
+window.deleteDebtFromOptions  = deleteDebtFromOptions;
+window.closeDebtOptions       = closeDebtOptions;
+window.payDebt                = payDebt;
+window.confirmarPago          = confirmPayment;
+window.cerrarModalPago        = closePayModal;

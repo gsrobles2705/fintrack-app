@@ -27,15 +27,86 @@ function renderHome() {
 function renderStreak() {
   const streak = Storage.getStreak();
   const streakContainer = document.getElementById('streak-container');
-  if (streakContainer) {
-    streakContainer.innerHTML = `
-      <div class="streak-badge">
-        <span class="streak-icon">🔥</span>
-        <span class="streak-count">${streak.count} días</span>
-      </div>
-    `;
+  if (!streakContainer) return;
+  // Día 0 (count=0) → no mostrar nada
+  if (!streak.count || streak.count < 1) {
+    streakContainer.innerHTML = '';
+    return;
   }
+  streakContainer.innerHTML = `
+    <div class="streak-badge" title="${streak.count} días consecutivos" onclick="showStreakModal()">
+      <span class="streak-fire">🔥</span>
+      <span class="streak-number">${streak.count}</span>
+    </div>
+  `;
+  requestAnimationFrame(() => {
+    const badge = streakContainer.querySelector('.streak-badge');
+    if (badge) badge.classList.add('streak-animate');
+  });
 }
+
+function showStreakModal() {
+  const streak = Storage.getStreak();
+  const count  = streak.count || 0;
+
+  // Crear overlay temporal
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modal-streak';
+  overlay.style.display = 'flex';
+
+  overlay.innerHTML = `
+    <div class="modal-card" style="text-align:center">
+      <div style="font-size:52px;line-height:1;margin:10px 0 8px">🔥</div>
+      <h3 class="modal-title" style="text-align:center">¡Racha de ${count} día${count !== 1 ? 's' : ''}!</h3>
+      <p class="modal-subtitle" style="text-align:center;font-size:14px;line-height:1.6;margin-top:4px">
+        Llevas <strong>${count} día${count !== 1 ? 's' : ''} consecutivo${count !== 1 ? 's' : ''}</strong> usando FinTrack.
+        Cada día que registras tus movimientos construyes un hábito que transforma tu vida financiera.
+      </p>
+
+      <div style="background:var(--bg-card-2);border:1px solid var(--border-color-2);border-radius:var(--radius-md);padding:16px;margin:4px 0 0;text-align:left;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:18px">📊</span>
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.5">
+            <strong style="color:var(--text-primary)">Claridad total.</strong>
+            Saber en qué gastas es el primer paso para gastar mejor y ahorrar sin esfuerzo.
+          </p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:18px">🎯</span>
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.5">
+            <strong style="color:var(--text-primary)">Metas reales.</strong>
+            Las personas que registran sus finanzas diariamente alcanzan sus metas 3× más rápido.
+          </p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:18px">🧘</span>
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.5">
+            <strong style="color:var(--text-primary)">Menos estrés.</strong>
+            El orden financiero reduce la ansiedad. Cuando sabes dónde está tu dinero, tienes el control.
+          </p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:18px">💪</span>
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.5">
+            <strong style="color:var(--text-primary)">¡No rompas la racha!</strong>
+            Vuelve mañana para mantenerla. Tu yo del futuro te lo agradecerá.
+          </p>
+        </div>
+      </div>
+
+      <button class="btn-primary" style="margin-top:4px" onclick="closeModal('modal-streak', () => document.getElementById('modal-streak')?.remove())">
+        ¡Seguir así! 💪
+      </button>
+    </div>`;
+
+  overlay.onclick = (e) => {
+    if (e.target === overlay) closeModal('modal-streak', () => overlay.remove());
+  };
+  document.body.appendChild(overlay);
+  vibrate(30);
+}
+window.showStreakModal = showStreakModal;
 
 function renderGrowthIndicator() {
   const transactions = Storage.getTransactions();

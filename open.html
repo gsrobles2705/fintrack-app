@@ -314,33 +314,24 @@
     <div id="view-android-guide" style="display:none">
       <div class="browser-wrap">
         <!-- Chrome logo oficial a color -->
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <!-- Sombras/base -->
-          <circle cx="50" cy="50" r="50" fill="#fff"/>
-          <!-- Sector rojo (superior) -->
-          <path d="M50 50 L50 16 A34 34 0 0 1 79.44 33Z" fill="#EA4335"/>
-          <!-- Sector amarillo (inferior derecho) -->
-          <path d="M50 50 L79.44 33 A34 34 0 0 1 79.44 67Z" fill="#FBBC05"/>
-          <!-- Sector verde (inferior izquierdo) -->
-          <path d="M50 50 L79.44 67 A34 34 0 0 1 20.56 67Z" fill="#34A853"/>
-          <!-- Sector azul (izquierdo superior) -->
-          <path d="M50 50 L20.56 67 A34 34 0 0 1 20.56 33Z" fill="#4285F4"/>
-          <!-- Sector rojo (cierre arco, pequeño) -->
-          <path d="M50 50 L20.56 33 A34 34 0 0 1 50 16Z" fill="#EA4335"/>
-          <!-- Anillo blanco interior -->
-          <circle cx="50" cy="50" r="21" fill="#fff"/>
-          <!-- Círculo azul centro -->
-          <circle cx="50" cy="50" r="18" fill="#4285F4"/>
-          <!-- Centro blanco -->
-          <circle cx="50" cy="50" r="12" fill="#fff"/>
-          <!-- Brillo sutil -->
-          <circle cx="50" cy="50" r="50" fill="url(#chrome-shine)" opacity="0.08"/>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48" height="72" width="72">
           <defs>
-            <radialGradient id="chrome-shine" cx="35%" cy="25%" r="60%">
-              <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
-              <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
-            </radialGradient>
+            <linearGradient id="a" x1="3.2173" y1="15" x2="44.7812" y2="15" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#d93025" /><stop offset="1" stop-color="#ea4335" />
+            </linearGradient>
+            <linearGradient id="b" x1="20.7219" y1="47.6791" x2="41.5039" y2="11.6837" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#fcc934" /><stop offset="1" stop-color="#fbbc04" />
+            </linearGradient>
+            <linearGradient id="c" x1="26.5981" y1="46.5015" x2="5.8161" y2="10.506" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#1e8e3e" /><stop offset="1" stop-color="#34a853" />
+            </linearGradient>
           </defs>
+          <circle cx="24" cy="23.9947" r="12" style="fill:#fff"/>
+          <path d="M3.2154,36A24,24,0,1,0,12,3.2154,24,24,0,0,0,3.2154,36ZM34.3923,18A12,12,0,1,1,18,13.6077,12,12,0,0,1,34.3923,18Z" style="fill:none"/>
+          <path d="M24,12H44.7812a23.9939,23.9939,0,0,0-41.5639.0029L13.6079,30l.0093-.0024A11.9852,11.9852,0,0,1,24,12Z" style="fill:url(#a)"/>
+          <circle cx="24" cy="24" r="9.5" style="fill:#1a73e8"/>
+          <path d="M34.3913,30.0029,24.0007,48A23.994,23.994,0,0,0,44.78,12.0031H23.9989l-.0025.0093A11.985,11.985,0,0,1,34.3913,30.0029Z" style="fill:url(#b)"/>
+          <path d="M13.6086,30.0031,3.218,12.006A23.994,23.994,0,0,0,24.0025,48L34.3931,30.0029l-.0067-.0068a11.9852,11.9852,0,0,1-20.7778.007Z" style="fill:url(#c)"/>
         </svg>
       </div>
 
@@ -371,16 +362,24 @@
 
       <a class="btn-primary" id="btn-chrome"
          href="intent://gsrobles2705.github.io/fintrack-app/#Intent;scheme=https;package=com.android.chrome;end">
-        <svg width="22" height="22" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="50" fill="#fff"/>
-          <path d="M50 50 L50 16 A34 34 0 0 1 79.44 33Z" fill="#EA4335"/>
-          <path d="M50 50 L79.44 33 A34 34 0 0 1 79.44 67Z" fill="#FBBC05"/>
-          <path d="M50 50 L79.44 67 A34 34 0 0 1 20.56 67Z" fill="#34A853"/>
-          <path d="M50 50 L20.56 67 A34 34 0 0 1 20.56 33Z" fill="#4285F4"/>
-          <path d="M50 50 L20.56 33 A34 34 0 0 1 50 16Z" fill="#EA4335"/>
-          <circle cx="50" cy="50" r="21" fill="#fff"/>
-          <circle cx="50" cy="50" r="18" fill="#4285F4"/>
-          <circle cx="50" cy="50" r="12" fill="#fff"/>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48" height="22" width="22">
+          <defs>
+            <linearGradient id="a2" x1="3.2173" y1="15" x2="44.7812" y2="15" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#d93025"/><stop offset="1" stop-color="#ea4335"/>
+            </linearGradient>
+            <linearGradient id="b2" x1="20.7219" y1="47.6791" x2="41.5039" y2="11.6837" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#fcc934"/><stop offset="1" stop-color="#fbbc04"/>
+            </linearGradient>
+            <linearGradient id="c2" x1="26.5981" y1="46.5015" x2="5.8161" y2="10.506" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#1e8e3e"/><stop offset="1" stop-color="#34a853"/>
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="23.9947" r="12" style="fill:#fff"/>
+          <path d="M3.2154,36A24,24,0,1,0,12,3.2154,24,24,0,0,0,3.2154,36ZM34.3923,18A12,12,0,1,1,18,13.6077,12,12,0,0,1,34.3923,18Z" style="fill:none"/>
+          <path d="M24,12H44.7812a23.9939,23.9939,0,0,0-41.5639.0029L13.6079,30l.0093-.0024A11.9852,11.9852,0,0,1,24,12Z" style="fill:url(#a2)"/>
+          <circle cx="24" cy="24" r="9.5" style="fill:#1a73e8"/>
+          <path d="M34.3913,30.0029,24.0007,48A23.994,23.994,0,0,0,44.78,12.0031H23.9989l-.0025.0093A11.985,11.985,0,0,1,34.3913,30.0029Z" style="fill:url(#b2)"/>
+          <path d="M13.6086,30.0031,3.218,12.006A23.994,23.994,0,0,0,24.0025,48L34.3931,30.0029l-.0067-.0068a11.9852,11.9852,0,0,1-20.7778.007Z" style="fill:url(#c2)"/>
         </svg>
         Abrir en Chrome
       </a>

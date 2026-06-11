@@ -1,4 +1,4 @@
-// router.js — History API for the Android Back button and iOS swipe-back
+// router.js — History API + Modal Stack for Android Back / iOS swipe-back
 
 const SCREENS = {
   SPLASH:           'screen-splash',
@@ -32,16 +32,19 @@ const NO_NAV_SCREENS = new Set([
   SCREENS.ONBOARDING
 ]);
 
+// ─── Screen navigation stack ─────────────────────────────────────
+// Tracks the history of screens navigated so back knows where to go
+let _screenStack = [SCREENS.HOME];
 let _lastMainScreen = SCREENS.HOME;
+
+// ─── Exit toast timer ─────────────────────────────────────────────
+let _exitTimer = null;
+const EXIT_TIMEOUT = 2500;
 
 // ─────────────────────────────────────────────────────────────────
 // VISUAL CORE
-// Shows/hides screens and updates the nav.
-// Does NOT call pushState — navigate() handles that separately.
-// This allows popstate to call this without creating an infinite loop.
 // ─────────────────────────────────────────────────────────────────
 function _navigateInternal(screenId, direction = null) {
-  // Remove active from all screens; apply directional slide class to the incoming one
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.remove('active', 'slide-in-left', 'slide-in-right');
   });
@@ -52,18 +55,12 @@ function _navigateInternal(screenId, direction = null) {
     target.classList.add('active');
   }
 
-  // Track the last main tab
   if (!SUB_SCREENS.has(screenId) && !NO_NAV_SCREENS.has(screenId)) {
     _lastMainScreen = screenId;
   }
 
-  // Hide nav on splash/onboarding
-  document.body.classList.toggle(
-    'no-bottom-nav',
-    NO_NAV_SCREENS.has(screenId)
-  );
+  document.body.classList.toggle('no-bottom-nav', NO_NAV_SCREENS.has(screenId));
 
-  // Update active nav item
   document.querySelectorAll('.bottom-nav').forEach(nav => {
     nav.querySelectorAll('.nav-item').forEach((item, i) => {
       item.classList.toggle('active', i === NAV_INDEX[screenId]);
@@ -73,67 +70,90 @@ function _navigateInternal(screenId, direction = null) {
 
 // ─────────────────────────────────────────────────────────────────
 // navigate(screenId)
-// Public entry point. Updates DOM + pushes to history.
-// app.js overrides window.navigate to add render calls.
+// Pushes to the screen stack AND to the browser history.
 // ─────────────────────────────────────────────────────────────────
 function navigate(screenId, direction = null) {
   _navigateInternal(screenId, direction);
 
-  // Splash and Onboarding use replaceState so they don't remain in history
   if (NO_NAV_SCREENS.has(screenId)) {
-    history.replaceState({ screenId }, '', location.pathname);
+    history.replaceState({ screenId, stackLen: 0 }, '', location.pathname);
+    _screenStack = [];
   } else {
-    history.pushState({ screenId }, '', location.pathname);
+    // Avoid duplicate consecutive entries
+    if (_screenStack[_screenStack.length - 1] !== screenId) {
+      _screenStack.push(screenId);
+    }
+    history.pushState({ screenId, stackLen: _screenStack.length }, '', location.pathname);
   }
 }
 
 function navigateBack() {
-  navigate(_lastMainScreen);
+  _goBackOneScreen();
 }
 
 // ─────────────────────────────────────────────────────────────────
-// INTERCEPT BACK BUTTON (Android) and SWIPE-BACK (iOS Safari)
-//
-// FIX: previously the listener manipulated the DOM directly, which
-// showed the correct screen but did NOT execute renders
-// (renderHome, renderDebts, etc.), leaving stale data.
-//
-// Now we call window.navigate() which in app.js is wrapped
-// to also execute the corresponding renders.
-// The only caveat: window.navigate() calls pushState, but here
-// we come from a popstate (the browser already went back in
-// history), so the extra push creates a new entry that
-// "compensates" the pop — the user can keep pressing Back
-// without getting stuck in a loop.
+// BACK LOGIC — shared by popstate and hardware back button
+// Priority: 1) open modal  2) screen stack  3) exit prompt
 // ─────────────────────────────────────────────────────────────────
-window.addEventListener('popstate', (event) => {
-  const screenId = event.state?.screenId;
-
-  // No state or loading screen → go to Home
-  if (!screenId || NO_NAV_SCREENS.has(screenId)) {
-    window.navigate(SCREENS.HOME);
+function _handleBack() {
+  // 1. Close topmost open modal
+  const openModal = _getTopModal();
+  if (openModal) {
+    closeModal(openModal.id);
+    // Push a new state so the next back press is handled here again
+    history.pushState({ screenId: _screenStack[_screenStack.length - 1], stackLen: _screenStack.length }, '', location.pathname);
     return;
   }
 
-  // Call window.navigate so that renders defined in app.js
-  // are executed in addition to the visual change
-  window.navigate(screenId);
+  // 2. Navigate back in the screen stack
+  _goBackOneScreen();
+}
+
+function _getTopModal() {
+  // Return the last open modal (stacked order = DOM order)
+  const all = [...document.querySelectorAll('.modal-overlay')];
+  // Reverse so we get the topmost (last opened) first
+  return all.reverse().find(m => m.style.display === 'flex');
+}
+
+function _goBackOneScreen() {
+  // Pop current screen from stack
+  if (_screenStack.length > 1) {
+    _screenStack.pop();
+    const prev = _screenStack[_screenStack.length - 1];
+    window.navigate(prev);
+    return;
+  }
+
+  // Stack has only one entry (a main tab) — show exit prompt
+  _promptExit();
+}
+
+function _promptExit() {
+  if (_exitTimer) {
+    // Second press within window → exit
+    clearTimeout(_exitTimer);
+    _exitTimer = null;
+    window.close();
+    setTimeout(() => { window.location.href = 'about:blank'; }, 100);
+    return;
+  }
+  Toast.info('Presiona otra vez para salir', '');
+  _exitTimer = setTimeout(() => { _exitTimer = null; }, EXIT_TIMEOUT);
+  // Push a dummy state so the next back press fires popstate again
+  history.pushState({ screenId: _screenStack[_screenStack.length - 1], stackLen: _screenStack.length }, '', location.pathname);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// POPSTATE — fires on Android back, iOS swipe-back, browser back
+// ─────────────────────────────────────────────────────────────────
+window.addEventListener('popstate', (event) => {
+  _handleBack();
 });
+
 // ─────────────────────────────────────────────────────────────────
 // SWIPE NAVIGATION — horizontal swipe between main tabs
-//
-// Rules:
-//   · Only active on the 4 main tabs (HOME, REGISTRO, DEUDAS, ACTIVIDAD)
-//   · Swipe left  → next tab  (higher index)
-//   · Swipe right → prev tab  (lower index)
-//   · Gesture is ignored when:
-//       - A modal overlay is open (display !== 'none')
-//       - The touch starts inside a horizontally-scrollable element
-//       - The vertical component exceeds the horizontal (normal scroll)
-//   · Minimum horizontal distance: 50px
-//   · Horizontal/vertical ratio must be > 1.3 to avoid accidental triggers
 // ─────────────────────────────────────────────────────────────────
-
 const MAIN_TAB_ORDER = [
   SCREENS.HOME,
   SCREENS.REGISTRO,
@@ -141,12 +161,12 @@ const MAIN_TAB_ORDER = [
   SCREENS.ACTIVIDAD
 ];
 
-const SWIPE_THRESHOLD   = 50;   // min px to count as a swipe
-const SWIPE_RATIO       = 1.3;  // horizontal must be this times greater than vertical
+const SWIPE_THRESHOLD = 50;
+const SWIPE_RATIO     = 1.3;
 
 let _touchStartX = 0;
 let _touchStartY = 0;
-let _touchLocked = false;       // true when gesture is determined to be vertical
+let _touchLocked = false;
 
 function _isModalOpen() {
   return [...document.querySelectorAll('.modal-overlay')].some(
@@ -158,11 +178,8 @@ function _isHorizontalScrollable(el) {
   while (el && el !== document.body) {
     const style    = window.getComputedStyle(el);
     const overflow = style.overflowX;
-    if ((overflow === 'auto' || overflow === 'scroll')) {
-      // Solo si realmente hay contenido desbordado horizontalmente
-      if (el.scrollWidth > el.clientWidth) {
-        return true;
-      }
+    if ((overflow === 'auto' || overflow === 'scroll') && el.scrollWidth > el.clientWidth) {
+      return true;
     }
     el = el.parentElement;
   }
@@ -179,16 +196,9 @@ function _currentTabIndex() {
 function _initSwipeNavigation() {
   document.addEventListener('touchstart', (e) => {
     _touchLocked = false;
-
-    // Only act on main tabs
     if (_currentTabIndex() === -1) return;
-
-    // Ignore if a modal is open
     if (_isModalOpen()) { _touchLocked = true; return; }
-
-    // Ignore if touch starts inside a horizontal-scroll container
     if (_isHorizontalScrollable(e.target)) { _touchLocked = true; return; }
-
     _touchStartX = e.touches[0].clientX;
     _touchStartY = e.touches[0].clientY;
   }, { passive: true });
@@ -196,59 +206,39 @@ function _initSwipeNavigation() {
   document.addEventListener('touchmove', (e) => {
     if (_touchLocked) return;
     if (_currentTabIndex() === -1) return;
-
     const dx = e.touches[0].clientX - _touchStartX;
     const dy = e.touches[0].clientY - _touchStartY;
-
-    // If vertical movement dominates early, lock out swipe for this gesture
-    if (Math.abs(dy) > Math.abs(dx) * SWIPE_RATIO) {
-      _touchLocked = true;
-      return;
-    }
-
-    // Horizontal gesture confirmed — block native scroll/pan
-    if (Math.abs(dx) > 8) {
-      e.preventDefault();
-    }
+    if (Math.abs(dy) > Math.abs(dx) * SWIPE_RATIO) { _touchLocked = true; return; }
+    if (Math.abs(dx) > 8) e.preventDefault();
   }, { passive: false });
 
   document.addEventListener('touchend', (e) => {
     if (_touchLocked) return;
-
     const idx = _currentTabIndex();
     if (idx === -1) return;
-
     const dx = e.changedTouches[0].clientX - _touchStartX;
     const dy = e.changedTouches[0].clientY - _touchStartY;
-
-    // Must clear the threshold and ratio check
     if (Math.abs(dx) < SWIPE_THRESHOLD) return;
     if (Math.abs(dx) < Math.abs(dy) * SWIPE_RATIO) return;
-
     if (dx < 0) {
-      // Swipe left → next tab
       const next = MAIN_TAB_ORDER[idx + 1];
       if (next) window.navigate(next, 'left');
     } else {
-      // Swipe right → prev tab
       const prev = MAIN_TAB_ORDER[idx - 1];
       if (prev) window.navigate(prev, 'right');
     }
   }, { passive: true });
 }
 
-// Boot after DOM is ready
 document.addEventListener('DOMContentLoaded', _initSwipeNavigation);
 
-// NUEVA MEJORA 1: obtener pantalla actual y cerrar modal superior
 function getCurrentScreen() {
   return document.querySelector('.screen.active')?.id;
 }
 window.getCurrentScreen = getCurrentScreen;
 
 function closeTopModal() {
-  const modals = document.querySelectorAll('.modal-overlay');
-  const openModal = Array.from(modals).find(m => m.style.display === 'flex');
-  if (openModal) closeModal(openModal.id);
+  const modal = _getTopModal();
+  if (modal) closeModal(modal.id);
 }
 window.closeTopModal = closeTopModal;

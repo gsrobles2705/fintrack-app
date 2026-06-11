@@ -85,44 +85,231 @@ function checkDueDateDebts() {
   localStorage.setItem(KEY_LAST_OPEN, today.toISOString());
 }
 
-// ─── DOUBLE BACK TO EXIT (NUEVA MEJORA 2) ──────────────────────
-let exitTimer = null;
-function onBackButton() {
-  // Cerrar modal si hay alguno abierto
-  const openModals = document.querySelectorAll('.modal-overlay');
-  for (let modal of openModals) {
-    if (modal.style.display === 'flex') {
-      closeModal(modal.id);
-      return;
-    }
-  }
-  // Si estamos en una pantalla principal (no subpantalla)
-  const activeScreen = document.querySelector('.screen.active');
-  const isMainScreen = [SCREENS.HOME, SCREENS.REGISTRO, SCREENS.DEUDAS, SCREENS.ACTIVIDAD].includes(activeScreen?.id);
-  if (isMainScreen && !exitTimer) {
-    Toast.info('Presiona otra vez para salir', '');
-    exitTimer = setTimeout(() => exitTimer = null, 2000);
-    return;
-  }
-  if (exitTimer) {
-    clearTimeout(exitTimer);
-    exitTimer = null;
-    // Intento de cerrar la pestaña (funciona en la mayoría de navegadores)
-    window.close();
-    setTimeout(() => window.location.href = 'about:blank', 100);
-  } else {
-    window.navigateBack();
-  }
-}
-
 // ─── Inicialización de racha (NUEVA MEJORA 10) ─────────────────
 function initStreak() {
-  const today = new Date().toDateString();
-  const streak = Storage.getStreak();
-  if (streak.lastDate !== today) {
-    Storage.updateStreak(false);
-  }
+  Storage.updateStreak(true); // El primer día de uso = día 1
 }
+
+
+// ─── Banner de instalación PWA ────────────────────────────────────
+// Se muestra cada vez que el usuario abre la app en el navegador
+// (no como PWA instalada) hasta que instale o elija "no mostrar".
+
+const KEY_INSTALL_NEVER = 'fintrack_install_never';
+
+function _isRunningAsPWA() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+}
+
+function checkInstallBanner() {
+  // No mostrar si ya está instalada como PWA
+  if (_isRunningAsPWA()) return;
+  // No mostrar si el usuario eligió "no volver a mostrar"
+  if (localStorage.getItem(KEY_INSTALL_NEVER)) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'install-banner-overlay';
+  overlay.style.cssText = `
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.72);
+    display:flex;align-items:flex-end;
+    z-index:9998;
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    animation:overlay-fade-in .18s ease both;
+  `;
+
+  overlay.innerHTML = `
+    <div id="install-banner-card" style="
+      background:var(--bg-card);
+      width:100%;
+      border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+      padding:var(--spacing-lg);
+      display:flex;flex-direction:column;gap:20px;
+      border-top:1px solid var(--border-color-2);
+      animation:modal-slide-up .25s cubic-bezier(0.22,1,0.36,1) both;
+    ">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="
+          width:48px;height:48px;border-radius:12px;
+          background:var(--accent-green-dim);
+          border:1px solid var(--accent-green);
+          display:flex;align-items:center;justify-content:center;
+          font-size:24px;flex-shrink:0;
+        ">📲</div>
+        <div>
+          <p style="font-size:18px;font-weight:800;color:var(--text-primary);letter-spacing:-0.3px">Instala FinTrack</p>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:2px">Acceso rápido desde tu pantalla de inicio</p>
+        </div>
+      </div>
+
+      <div style="
+        background:var(--bg-card-2);border:1px solid var(--border-color-2);
+        border-radius:var(--radius-md);padding:18px 14px;
+        display:flex;flex-direction:column;gap:15px;
+      ">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:16px;flex-shrink:0">⚡</span>
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.45">
+            <strong style="color:var(--text-primary)">Más rápido.</strong>
+            Abre al instante sin pasar por el navegador.
+          </p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:16px;flex-shrink:0">📴</span>
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.45">
+            <strong style="color:var(--text-primary)">Sin internet.</strong>
+            Registra tus gastos aunque no tengas conexión.
+          </p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:16px;flex-shrink:0">🔔</span>
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.45">
+            <strong style="color:var(--text-primary)">Notificaciones.</strong>
+            Recibe alertas de deudas y objetivos en tiempo real.
+          </p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:16px;flex-shrink:0">🛡️</span>
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.45">
+            <strong style="color:var(--text-primary)">Tu datos, seguros.</strong>
+            Todo se guarda localmente en tu dispositivo, sin servidores externos.
+          </p>
+        </div>
+      </div>
+
+      <button onclick="showInstallInstructionsModal()"
+              style="display:flex;align-items:center;justify-content:center;gap:8px;
+                    width:100%;background:var(--accent-green);color:#000;
+                    border:none;border-radius:var(--radius-xl);
+                    padding:18px;font-family:var(--font-main);
+                    font-size:16px;font-weight:800;letter-spacing:0.2px;
+                    box-shadow:0 0 20px rgba(80,200,120,0.25);
+                    cursor:pointer;">
+        Ver instrucciones de instalación
+      </button>
+
+      <div style="display:flex;gap:8px">
+        <button onclick="_dismissInstallBanner(false)" style="
+          flex:1;background:transparent;
+          border:1px solid var(--border-color-2);
+          border-radius:var(--radius-xl);padding:13px;
+          font-family:var(--font-main);font-size:13px;font-weight:500;
+          color:var(--text-secondary);cursor:pointer;
+        ">Omitir por ahora</button>
+        <button onclick="_dismissInstallBanner(true)" style="
+          flex:1;background:transparent;
+          border:1px solid var(--border-color-2);
+          border-radius:var(--radius-xl);padding:13px;
+          font-family:var(--font-main);font-size:13px;font-weight:500;
+          color:var(--text-tertiary);cursor:pointer;
+        ">No volver a mostrar</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+}
+
+function _dismissInstallBanner(never) {
+  if (never) localStorage.setItem(KEY_INSTALL_NEVER, '1');
+  const overlay = document.getElementById('install-banner-overlay');
+  if (!overlay) return;
+  // Animación de salida manual (no usa closeModal para evitar dependencia de id)
+  overlay.style.animation = 'overlay-fade-out .22s ease forwards';
+  const card = overlay.querySelector('#install-banner-card');
+  if (card) card.style.animation = 'modal-slide-down .22s cubic-bezier(0.4,0,1,1) forwards';
+  setTimeout(() => overlay.remove(), 240);
+}
+window._dismissInstallBanner = _dismissInstallBanner;
+
+// Modal de instrucciones de instalación (versión mejorada)
+window.showInstallInstructionsModal = function() {
+  // Si ya hay un modal de instrucciones abierto, lo cerramos
+  const existing = document.getElementById('modal-install-guide');
+  if (existing) {
+    closeModal('modal-install-guide', () => existing.remove());
+    return;
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'modal-install-guide';
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  
+  // Permitir cerrar tocando fuera
+  modal.onclick = (e) => {
+    if (e.target === modal) {
+      closeModal('modal-install-guide', () => modal.remove());
+    }
+  };
+
+  modal.innerHTML = `
+    <div class="modal-card" style="max-height:85vh; overflow-y:auto">
+      <h3 class="modal-title">📲 Instalar FinTrack</h3>
+      <p class="modal-subtitle">
+        Añade la app a tu pantalla de inicio y accede al instante, sin navegador.
+      </p>
+
+      <div style="margin: 8px 0 4px">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            Abre FinTrack en <strong>Chrome (Android)</strong> o <strong>Safari (iPhone/iPad)</strong>.
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            Toca el botón 
+            <span class="pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+              Compartir
+            </span>
+            (iOS) o los <span class="pill">⋮</span> tres puntos (Android).
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text">
+            Busca y selecciona <strong>"Añadir a pantalla de inicio"</strong> 
+            (en algunos navegadores puede llamarse <strong>"Instalar app"</strong>).
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-text">
+            Confirma el nombre y toca <strong>"Añadir"</strong>. ¡Listo!
+          </div>
+        </div>
+      </div>
+
+      <div class="install-note">
+        <div class="install-note-content">
+          <div class="install-note-icon">📌</div>
+          <div class="install-note-text">
+            <strong>En iPhone:</strong> después de tocar "Compartir", desplázate hacia abajo 
+            y toca "Añadir a pantalla de inicio".<br>
+            <strong class="android-highlight">En Android:</strong> los pasos pueden variar 
+            ligeramente según el navegador, pero la opción suele estar en el menú de tres puntos.
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 4px">
+        <button class="btn-primary" onclick="closeModal('modal-install-guide', () => document.getElementById('modal-install-guide')?.remove())">
+          Entendido, cerrar
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+};
 
 // ─── INIT ─────────────────────────────────────────────────────
 function initApp() {
@@ -135,8 +322,9 @@ function initApp() {
       checkDueDateDebts();
       window.ensureCategoriesInitialized();
       Storage.migrateTransactions();
-      initStreak();                     // NUEVO
+      initStreak();
       navigate(SCREENS.HOME);
+      setTimeout(checkInstallBanner, 800);
     } else {
       navigate(SCREENS.ONBOARDING);
     }
@@ -144,12 +332,6 @@ function initApp() {
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
-
-// Sobrescribir popstate para manejar back button
-window.addEventListener('popstate', (event) => {
-  onBackButton();
-  event.preventDefault();
-});
 
 // ─── Global navigate with reactive badge ─────────────────────────
 const _originalNavigate = navigate;
