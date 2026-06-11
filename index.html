@@ -45,7 +45,7 @@
     </div>
     <div class="splash-footer">
       © 2026 FinTrack.<br>
-      Todos los derechos reservados. / Versión 1.1.0<br>
+      Todos los derechos reservados. / Versión 1.2.0<br>
       FinTrack no es una entidad bancaria.
     </div>
   </div>
@@ -797,11 +797,17 @@
 
       <!-- BÚSQUEDA Y FILTROS -->
       <div class="search-filter-bar">
-        <input type="text" id="search-transaction" class="input-field" placeholder="Buscar por categoría..." oninput="filterTransactions()">
-        <div class="filter-buttons">
-          <button class="filter-btn active" data-filter="all" onclick="setTypeFilter('all')">Todos</button>
-          <button class="filter-btn" data-filter="gasto" onclick="setTypeFilter('gasto')">Gastos</button>
-          <button class="filter-btn" data-filter="ingreso" onclick="setTypeFilter('ingreso')">Ingresos</button>
+        <input type="text" id="search-transaction" class="input-field search-input" placeholder="Buscar..." oninput="filterTransactions()">
+        <div class="filter-dropdown-wrap" id="filter-dropdown-wrap">
+          <button class="filter-dropdown-btn" id="filter-dropdown-btn" onclick="toggleFilterDropdown()">
+            <span id="filter-dropdown-label">Todos</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6-6"/></svg>
+          </button>
+          <div class="filter-dropdown-menu" id="filter-dropdown-menu" style="display:none">
+            <div class="filter-dropdown-item active" data-value="all" onclick="setTypeFilter('all')">Todos</div>
+            <div class="filter-dropdown-item" data-value="gasto" onclick="setTypeFilter('gasto')">Gastos</div>
+            <div class="filter-dropdown-item" data-value="ingreso" onclick="setTypeFilter('ingreso')">Ingresos</div>
+          </div>
         </div>
       </div>
 
@@ -976,8 +982,7 @@
 
       <!-- HEADER -->
       <div class="subscreen-header">
-        <button class="btn-back" 
-                onclick="navigate(SCREENS.PERFIL)">
+        <button class="btn-back" onclick="navigateBack()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l4 4"/><path d="M5 12l4 -4"/></svg>
         </button>
         <span class="subscreen-title" style="margin-right: 20px;">FinTrack</span>
@@ -1088,13 +1093,20 @@
   <!-- PANTALLA: Notificaciones -->
   <div id="screen-notificaciones" class="screen">
     <div class="subscreen-content">
-
       <div class="subscreen-header">
         <button class="btn-back" onclick="navigateBack()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l4 4"/><path d="M5 12l4 -4"/></svg>
         </button>
-        <span class="subscreen-title">Notificaciones</span>
-        <button class="btn-clear-all" onclick="vaciarTodasNotificaciones()">Vaciar todo</button>
+        <span class="subscreen-title">FinTrack</span>
+        <div style="width:60px"></div>
+      </div>
+
+      <div class="notif-page-header">
+        <h2 class="notif-page-title">Notificaciones</h2>
+        <button class="notif-clear-btn" onclick="vaciarTodasNotificaciones()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
+          Vaciar
+        </button>
       </div>
 
       <div id="notificaciones-lista">
@@ -1112,7 +1124,7 @@
       
       <!-- HEADER con botón atrás -->
       <div class="subscreen-header">
-        <button class="btn-back" onclick="navigate(SCREENS.PERFIL)">
+        <button class="btn-back" onclick="navigateBack()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
               viewBox="0 0 24 24" fill="none" stroke="currentColor"
               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1200,13 +1212,11 @@
   </div><!-- /screen-feedback -->
 
   <!-- Modal opciones transacción (editar/eliminar) -->
-  <div class="modal-overlay" id="modal-transaction-options" style="display:none" onclick="">
+  <div class="modal-overlay" id="modal-transaction-options" style="display:none">
     <div class="modal-card">
       <h3 class="modal-title" id="tx-options-title">Opciones</h3>
       <p class="modal-subtitle" id="tx-options-amount"></p>
-      <button class="btn-primary" onclick="editTransaction()">Editar</button>
-      <button class="btn-primary btn-rojo" onclick="deleteTransactionFromOptions()">Eliminar</button>
-      <button class="btn-ghost" onclick="closeModal('modal-transaction-options')">Cancelar</button>
+      <!-- Botones inyectados dinámicamente por actividad.js -->
     </div>
   </div>
 
