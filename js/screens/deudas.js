@@ -27,7 +27,6 @@ function renderDeudas() {
   const porCobrar = debts.filter(d => !d.paid && d.tipo === 'por_cobrar');
   const paid      = debts.filter(d => d.paid);
 
-  // "Total pendiente" solo incluye lo que YO debo (por_pagar)
   const total = porPagar.reduce((s, d) => s + d.amount, 0);
   const totalEl = document.getElementById('deudas-total');
   totalEl.textContent = `${symbol} ${total.toFixed(2)}`;
@@ -70,9 +69,7 @@ function renderDebtCard(debt, currency, isPaid) {
   }
 
   const tipoLabel = isCobrar ? 'Presté' : 'Me prestaron';
-  // Monto: verde si es por_cobrar (me deben), rojo si por_pagar (debo)
   const montoClass = isPaid ? 'pagada' : (isCobrar ? 'cobrar' : '');
-  // Botón acción
   let accionHtml = '';
   if (!isPaid) {
     const btnLabel = isCobrar ? 'Cobrar' : 'Pagar';
@@ -84,7 +81,7 @@ function renderDebtCard(debt, currency, isPaid) {
   }
 
   return `
-    <div class="deuda-card ${isPaid ? 'pagada' : ''}">
+    <div class="deuda-card ${isPaid ? 'pagada' : ''}" data-id="${debt.id}">
       <div class="deuda-card-header">
         <div>
           <p class="deuda-persona">${escapeHtml(debt.person)}</p>
@@ -108,7 +105,6 @@ function escapeHtml(str) {
   );
 }
 
-// ─── Opciones de deuda ────────────────────────────────────────────
 function showDebtOptions(id) {
   debtOptionsId = id;
   const debt = Storage.getDebts().find(d => d.id === id);
@@ -150,9 +146,7 @@ function showDebtOptions(id) {
 function editFromOptions() {
   const id = debtOptionsId;
   closeDebtOptions();
-  // Navegar a Deudas y abrir el modal de edición
   navigate(SCREENS.DEUDAS);
-  // Pequeño delay para asegurar que el render de deudas termine
   setTimeout(() => showDebtModal(id), 80);
 }
 
@@ -192,11 +186,10 @@ async function deleteDebtFromOptions() {
   });
   if (!ok) return;
   if (debt.paid && debt.transactionId) Storage.deleteTransaction(debt.transactionId);
-  // También eliminar la transacción de creación del préstamo
   const allTx = Storage.getTransactions();
   const creationTx = allTx.find(t =>
     (t.category === 'prestamo_recibido' || t.category === 'prestamo_otorgado') &&
-    Math.abs(new Date(t.date) - new Date(debt.date)) < 3000
+    (t.debtId === debt.id || Math.abs(new Date(t.date) - new Date(debt.date)) < 3000)
   );
   if (creationTx) Storage.deleteTransaction(creationTx.id);
   Storage.deleteDebt(id);
@@ -209,7 +202,6 @@ function closeDebtOptions() {
   debtOptionsId = null;
 }
 
-// ─── Pagar / Cobrar deuda ─────────────────────────────────────────
 function payDebt(id) {
   payingDebtId = id;
   const debt = Storage.getDebts().find(d => d.id === id);
@@ -228,19 +220,16 @@ function confirmPayment() {
   if (!payingDebtId) return;
   const debt = Storage.getDebts().find(d => d.id === payingDebtId);
   if (!debt) return;
-  // Transacción inversa para cuadrar saldo
-  // por_pagar: al pagar sale dinero (gasto) — devuelve el ingreso que entró
-  // por_cobrar: al cobrar entra dinero (ingreso) — devuelve el gasto que salió
+
   const transaction = {
     id: Date.now().toString(),
     type: debt.tipo === 'por_pagar' ? 'gasto' : 'ingreso',
     amount: debt.amount,
     category: debt.tipo === 'por_pagar' ? 'pago_prestamo' : 'cobro_prestamo',
-    categoryLabel: debt.tipo === 'por_pagar'
-      ? `Pago a ${debt.person}`
-      : `Cobro de ${debt.person}`,
+    categoryLabel: debt.tipo === 'por_pagar' ? `Pago a ${debt.person}` : `Cobro de ${debt.person}`,
     categoryIcon: 'deuda',
-    date: new Date().toISOString()
+    date: new Date().toISOString(),
+    debtId: debt.id  // Enlazar con la deuda
   };
   Storage.addTransaction(transaction);
   Storage.updateDebt(payingDebtId, {
@@ -250,7 +239,28 @@ function confirmPayment() {
   });
   closePayModal();
   renderDeudas();
-  Toast.success('Actualizado', 'El saldo se ha ajustado correctamente.');
+
+  // Celebración: destello verde y elevación
+  setTimeout(() => {
+    const debtCard = document.querySelector(`.deuda-card[data-id="${payingDebtId}"]`);
+    if (debtCard) {
+      debtCard.style.transition = 'box-shadow 0.2s, border-color 0.2s, transform 0.2s';
+      debtCard.style.boxShadow = '0 0 0 2px var(--accent-green), 0 0 0 4px rgba(80,200,120,0.3)';
+      debtCard.style.borderColor = 'var(--accent-green)';
+      debtCard.style.transform = 'translateY(-2px)';
+      setTimeout(() => {
+        debtCard.style.boxShadow = '';
+        debtCard.style.borderColor = '';
+        debtCard.style.transform = '';
+        // Recargar para mover la tarjeta a pagadas
+        renderDeudas();
+      }, 500);
+    } else {
+      renderDeudas();
+    }
+  }, 50);
+
+  Toast.success('Deuda liquidada', '¡Has cumplido con tu compromiso! 🎉');
   vibrate(50);
 }
 
@@ -259,7 +269,6 @@ function closePayModal() {
   payingDebtId = null;
 }
 
-// ─── Modal Nueva / Editar Deuda ───────────────────────────────────
 function showDebtModal(id = null) {
   editingDebtId = id;
   ['deuda-input-monto', 'deuda-input-persona', 'deuda-input-fecha',
@@ -403,7 +412,6 @@ function guardarDeuda() {
     renderDeudas();
     Toast.success('Deuda actualizada', 'Los cambios fueron guardados.');
   } else {
-    // Nueva deuda
     const amount = parseFloat(document.getElementById('deuda-input-monto').value);
     const person = document.getElementById('deuda-input-persona').value.trim();
     const date   = document.getElementById('deuda-input-fecha').value;
@@ -431,7 +439,6 @@ function guardarDeuda() {
       paid: false, date: debtDate
     });
 
-    // Transacción automática con nombre de persona incluido
     const txLabel = tipo === 'por_pagar'
       ? `Préstamo de ${person}`
       : `Préstamo a ${person}`;
@@ -442,7 +449,8 @@ function guardarDeuda() {
       category:      tipo === 'por_pagar' ? 'prestamo_recibido' : 'prestamo_otorgado',
       categoryLabel: txLabel,
       categoryIcon:  'deuda',
-      date:          debtDate
+      date:          debtDate,
+      debtId:        newDebtId   // Enlazar con la deuda
     };
     Storage.addTransaction(transaction);
     closeDebtModal();
@@ -451,7 +459,6 @@ function guardarDeuda() {
   }
 }
 
-// ─── CSS extra para btn-cobrar (verde) ────────────────────────────
 (function injectDebtStyles() {
   if (document.getElementById('deudas-extra-styles')) return;
   const style = document.createElement('style');
@@ -471,7 +478,6 @@ function guardarDeuda() {
   document.head.appendChild(style);
 })();
 
-// ─── Alias globales ───────────────────────────────────────────────
 window.mostrarModalDeuda      = showDebtModal;
 window.guardarDeuda           = guardarDeuda;
 window.cerrarModalDeuda       = closeDebtModal;

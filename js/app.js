@@ -1,4 +1,4 @@
-// app.js
+// app.js — versión actualizada con mejoras v1.2.0
 
 const APP_VERSION = '1.2.0';
 
@@ -91,10 +91,7 @@ function initStreak() {
 }
 
 
-// ─── Banner de instalación PWA ────────────────────────────────────
-// Se muestra cada vez que el usuario abre la app en el navegador
-// (no como PWA instalada) hasta que instale o elija "no mostrar".
-
+// ─── Banner de instalación PWA con cierre antes de mostrar instrucciones ───
 const KEY_INSTALL_NEVER = 'fintrack_install_never';
 
 function _isRunningAsPWA() {
@@ -103,9 +100,7 @@ function _isRunningAsPWA() {
 }
 
 function checkInstallBanner() {
-  // No mostrar si ya está instalada como PWA
   if (_isRunningAsPWA()) return;
-  // No mostrar si el usuario eligió "no volver a mostrar"
   if (localStorage.getItem(KEY_INSTALL_NEVER)) return;
 
   const overlay = document.createElement('div');
@@ -179,7 +174,7 @@ function checkInstallBanner() {
         </div>
       </div>
 
-      <button onclick="showInstallInstructionsModal()"
+      <button id="install-show-instructions-btn"
               style="display:flex;align-items:center;justify-content:center;gap:8px;
                     width:100%;background:var(--accent-green);color:#000;
                     border:none;border-radius:var(--radius-xl);
@@ -209,13 +204,21 @@ function checkInstallBanner() {
     </div>`;
 
   document.body.appendChild(overlay);
+
+  const instructionsBtn = document.getElementById('install-show-instructions-btn');
+  instructionsBtn.onclick = () => {
+    // Cerrar el banner antes de abrir instrucciones
+    _dismissInstallBanner(false);
+    setTimeout(() => {
+      showInstallInstructionsModal();
+    }, 300);
+  };
 }
 
 function _dismissInstallBanner(never) {
   if (never) localStorage.setItem(KEY_INSTALL_NEVER, '1');
   const overlay = document.getElementById('install-banner-overlay');
   if (!overlay) return;
-  // Animación de salida manual (no usa closeModal para evitar dependencia de id)
   overlay.style.animation = 'overlay-fade-out .22s ease forwards';
   const card = overlay.querySelector('#install-banner-card');
   if (card) card.style.animation = 'modal-slide-down .22s cubic-bezier(0.4,0,1,1) forwards';
@@ -223,9 +226,8 @@ function _dismissInstallBanner(never) {
 }
 window._dismissInstallBanner = _dismissInstallBanner;
 
-// Modal de instrucciones de instalación (versión mejorada)
+// Modal de instrucciones de instalación (diseño mejorado)
 window.showInstallInstructionsModal = function() {
-  // Si ya hay un modal de instrucciones abierto, lo cerramos
   const existing = document.getElementById('modal-install-guide');
   if (existing) {
     closeModal('modal-install-guide', () => existing.remove());
@@ -237,7 +239,6 @@ window.showInstallInstructionsModal = function() {
   modal.className = 'modal-overlay';
   modal.style.display = 'flex';
   
-  // Permitir cerrar tocando fuera
   modal.onclick = (e) => {
     if (e.target === modal) {
       closeModal('modal-install-guide', () => modal.remove());
@@ -246,7 +247,16 @@ window.showInstallInstructionsModal = function() {
 
   modal.innerHTML = `
     <div class="modal-card" style="max-height:85vh; overflow-y:auto">
-      <h3 class="modal-title">📲 Instalar FinTrack</h3>
+      <h3 class="modal-title" style="display:flex;align-items:center;gap:12px">
+        <div style="
+          width:48px;height:48px;border-radius:12px;
+          background:var(--accent-green-dim);
+          border:1px solid var(--accent-green);
+          display:flex;align-items:center;justify-content:center;
+          font-size:24px;flex-shrink:0;"
+        >📲</div>
+        <div>Instalar FinTrack</div>
+      </h3>
       <p class="modal-subtitle">
         Añade la app a tu pantalla de inicio y accede al instante, sin navegador.
       </p>
@@ -290,7 +300,6 @@ window.showInstallInstructionsModal = function() {
 
       <div class="install-note">
         <div class="install-note-content">
-          <div class="install-note-icon">📌</div>
           <div class="install-note-text">
             <strong>En iPhone:</strong> después de tocar "Compartir", desplázate hacia abajo 
             y toca "Añadir a pantalla de inicio".<br>

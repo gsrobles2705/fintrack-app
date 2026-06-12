@@ -193,12 +193,26 @@ function _currentTabIndex() {
   });
 }
 
+// Nueva función para saber si el toque empezó en header o en notificación
+function _isTouchOnHeaderOrToast(target) {
+  let el = target;
+  while (el && el !== document.body) {
+    if (el.classList && (el.classList.contains('header') || el.classList.contains('subscreen-header') || el.classList.contains('toast') || el.classList.contains('notif-card'))) {
+      return true;
+    }
+    el = el.parentElement;
+  }
+  return false;
+}
+
 function _initSwipeNavigation() {
   document.addEventListener('touchstart', (e) => {
     _touchLocked = false;
     if (_currentTabIndex() === -1) return;
     if (_isModalOpen()) { _touchLocked = true; return; }
     if (_isHorizontalScrollable(e.target)) { _touchLocked = true; return; }
+    // Si el toque empezó en header o en una notificación, bloquear swipe
+    if (_isTouchOnHeaderOrToast(e.target)) { _touchLocked = true; return; }
     _touchStartX = e.touches[0].clientX;
     _touchStartY = e.touches[0].clientY;
   }, { passive: true });

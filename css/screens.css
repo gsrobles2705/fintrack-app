@@ -10,16 +10,18 @@ body::before {
   top: -120px;
   left: 50%;
   transform: translateX(-50%);
-  width: 480px;
-  height: 480px;
+  width: 380px;
+  height: 380px;
   background: radial-gradient(
     ellipse at center,
-    rgba(80, 200, 120, 0.055) 0%,
-    rgba(80, 200, 120, 0.018) 45%,
+    rgba(80, 200, 120, 0.12) 0%,   /* reducido de 0.18 a 0.12 */
+    rgba(80, 200, 120, 0.04) 45%,  /* reducido de 0.06 a 0.04 */
     transparent 70%
   );
   pointer-events: none;
   z-index: 0;
+  
+  animation: breathe-soft 12s ease-in-out infinite;
 }
 
 body::after {
@@ -31,11 +33,21 @@ body::after {
   height: 320px;
   background: radial-gradient(
     ellipse at center,
-    rgba(80, 200, 120, 0.025) 0%,
-    transparent 65%
+    rgba(80, 200, 120, 0.08) 0%,   /* reducido de 0.12 a 0.08 */
+    rgba(80, 200, 120, 0.02) 50%,  /* reducido de 0.04 a 0.02 */
+    transparent 70%
   );
   pointer-events: none;
   z-index: 0;
+  
+  animation: breathe-soft 12s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+@keyframes breathe-soft {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.3; }
 }
 
 /* ======================== */
@@ -2711,4 +2723,39 @@ body::after {
   height: 52px;  /* misma altura que .input-field con padding:16px */
   padding-top: 0;
   padding-bottom: 0;
+}
+
+/* ======================== */
+/*   CELEBRACIÓN OBJETIVO   */
+/* ======================== */
+.goal-completed {
+  box-shadow: 0 0 0 1px rgba(0, 255, 170, 0.3), 0 0 20px rgba(0, 255, 170, 0.2);
+  transition: box-shadow 0.3s ease;
+}
+.goal-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #00FFAA;
+  color: #000;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 900;
+  animation: check-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes check-pop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* ======================== */
+/*   TRANSICIÓN PICKER      */
+/* ======================== */
+.icon-picker-collapsible {
+  transition: max-height 0.3s ease, opacity 0.2s ease, margin-bottom 0.2s ease;
+}
+.icon-picker-collapsible .icon-picker-grid {
+  padding: 12px;
 }

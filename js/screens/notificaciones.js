@@ -197,7 +197,7 @@ function attachSwipeToCards() {
       const dx = e.touches[0].clientX - startX;
       if (Math.abs(dx) > 8) {
         isDragging = true;
-        const clampedDx = Math.max(dx, -280); // solo hacia la izquierda ilimitado, derecha poco
+        const clampedDx = Math.max(dx, -280);
         card.style.transform = `translateX(${clampedDx}px)`;
         const ratio = Math.min(Math.abs(clampedDx) / 120, 1);
         card.style.opacity = `${1 - ratio * 0.6}`;
@@ -206,35 +206,39 @@ function attachSwipeToCards() {
 
     card.addEventListener('touchend', (e) => {
       if (!isDragging) return;
-      const endX = e.changedTouches[0].clientX;
-      const dx = endX - startX;
+      const dx = e.changedTouches[0].clientX - startX;
 
       if (dx < -80 || dx > 80) {
-        // Dismiss con animación
-        const dir = dx < 0 ? '-110%' : '110%';
-        card.style.transition = 'transform 0.28s cubic-bezier(0.4, 0, 1, 1), opacity 0.28s ease, max-height 0.3s ease 0.15s, margin 0.3s ease 0.15s, padding 0.3s ease 0.15s';
-        card.style.transform = `translateX(${dir})`;
+        // Eliminar con animación fluida
+        const direction = dx < 0 ? '-110%' : '110%';
+        card.style.transition = 'transform 0.28s cubic-bezier(0.4, 0, 1, 1), opacity 0.28s ease';
+        card.style.transform = `translateX(${direction})`;
         card.style.opacity = '0';
-        card.style.maxHeight = card.offsetHeight + 'px';
-        // Colapsar altura después de que se va lateralmente
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            card.style.maxHeight = '0';
-            card.style.marginBottom = '0';
-            card.style.paddingTop = '0';
-            card.style.paddingBottom = '0';
-            card.style.overflow = 'hidden';
-          }, 150);
-        });
+        const height = card.offsetHeight;
+
+        // Esperar a que termine la animación de salida
         setTimeout(() => {
           const id = card.dataset.id;
           if (id) {
             eliminarNotificacion(id);
-            card.remove();
-            if (!document.querySelector('.notif-card')) renderNotificaciones();
-            else updateNotificationBadge();
           }
-        }, 420);
+          // Eliminar la tarjeta del DOM
+          card.remove();
+
+          // Aplicar una transición suave a las tarjetas restantes (margin-top)
+          const remainingCards = document.querySelectorAll('.notif-card');
+          if (remainingCards.length > 0) {
+            // Forzar reflow y animación de las tarjetas restantes
+            remainingCards.forEach((c, idx) => {
+              c.style.transition = 'margin-top 0.22s cubic-bezier(0.22, 1, 0.36, 1)';
+              c.style.marginTop = '0';
+              // Pequeño retraso para evitar que se vea brusco
+              setTimeout(() => { c.style.transition = ''; }, 250);
+            });
+          }
+          if (!document.querySelector('.notif-card')) renderNotificaciones();
+          else updateNotificationBadge();
+        }, 300);
       } else {
         // Snap back
         card.style.transition = 'transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.22s ease';

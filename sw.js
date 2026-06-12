@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fintrack-v2';
+const CACHE_NAME = 'fintrack-v3'; // ← versión incrementada
 const ASSETS = [
   '/fintrack-app/',
   '/fintrack-app/index.html',
@@ -29,15 +29,48 @@ self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
+  self.skipWaiting(); // Activar nueva versión inmediatamente
 });
 
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(res => res || fetch(e.request))
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      );
+    }).then(() => {
+      return self.clients.claim();
+    })
   );
 });
 
-// NUEVA MEJORA 8: Notificación push local diaria a las 20:00
+self.addEventListener('fetch', e => {
+  // Para index.html siempre priorizar red (evita versión cacheada antigua)
+  if (e.request.url.includes('/index.html') || e.request.url === '/fintrack-app/') {
+    e.respondWith(
+      fetch(e.request)
+        .then(response => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, responseClone));
+          return response;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+  // Para el resto: network first, luego cache
+  e.respondWith(
+    fetch(e.request)
+      .then(response => {
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(e.request, responseClone));
+        return response;
+      })
+      .catch(() => caches.match(e.request))
+  );
+});
+
+// Notificación diaria (sin cambios)
 function scheduleDailyNotification() {
   const now = new Date();
   const target = new Date();

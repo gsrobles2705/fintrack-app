@@ -777,7 +777,7 @@
   display: flex;
   gap: 14px;
   align-items: flex-start;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .step-num {
@@ -827,7 +827,7 @@
   border: 1px solid rgba(255,176,58,0.25);
   border-radius: var(--radius-md);
   padding: 14px;
-  margin: 12px 0 8px;
+  margin: -8px 0 8px;
 }
 
 .install-note-content {
@@ -836,13 +836,8 @@
   align-items: flex-start;
 }
 
-.install-note-icon {
-  font-size: 20px;
-  flex-shrink: 0;
-}
-
 .install-note-text {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.5;
 }

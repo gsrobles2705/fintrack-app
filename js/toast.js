@@ -72,21 +72,18 @@ function showToast(type, title, message = '', duration = 3000) {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
-    <div class="toast-icon">
-      ${_TOAST_ICONS[type] || _TOAST_ICONS.info}
-    </div>
+    <div class="toast-icon">${_TOAST_ICONS[type] || _TOAST_ICONS.info}</div>
     <div class="toast-body">
       <p class="toast-title">${title}</p>
       ${message ? `<p class="toast-msg">${message}</p>` : ''}
     </div>`;
 
   container.appendChild(toast);
+  vibrate(30); // micro-vibración al aparecer
 
-  // --- SWIPE TO DISMISS ---
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let isSwiping = false;
-  const SWIPE_THRESHOLD = 60; // px
+  // Swipe to dismiss (izquierda/derecha)
+  let touchStartX = 0, touchStartY = 0, isSwiping = false;
+  const SWIPE_THRESHOLD = 60;
 
   const onTouchStart = (e) => {
     touchStartX = e.touches[0].clientX;
@@ -94,49 +91,52 @@ function showToast(type, title, message = '', duration = 3000) {
     isSwiping = false;
     toast.style.transition = 'transform 0.15s ease';
   };
-
   const onTouchMove = (e) => {
     const dx = e.touches[0].clientX - touchStartX;
     const dy = e.touches[0].clientY - touchStartY;
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
-      e.preventDefault();   // evitar scroll vertical mientras se desliza horizontalmente
+      e.preventDefault();
       isSwiping = true;
       toast.style.transform = `translateX(${dx}px)`;
       toast.style.opacity = `${1 - Math.min(Math.abs(dx) / (SWIPE_THRESHOLD * 1.5), 1)}`;
     }
   };
-
   const onTouchEnd = (e) => {
     if (!isSwiping) return;
-    const endX = e.changedTouches[0].clientX;
-    const dx = endX - touchStartX;
+    const dx = e.changedTouches[0].clientX - touchStartX;
     if (Math.abs(dx) >= SWIPE_THRESHOLD) {
-      // Swipe completado: eliminar toast inmediatamente
       _dismissToast(toast);
     } else {
-      // Volver a posición original
       toast.style.transform = '';
       toast.style.opacity = '';
     }
-    toast.style.transition = '';
     toast.removeEventListener('touchstart', onTouchStart);
     toast.removeEventListener('touchmove', onTouchMove);
     toast.removeEventListener('touchend', onTouchEnd);
   };
-
   toast.addEventListener('touchstart', onTouchStart, { passive: false });
   toast.addEventListener('touchmove', onTouchMove, { passive: false });
   toast.addEventListener('touchend', onTouchEnd);
-  // --------------------------------------------------
 
-  // Auto-dismiss después de duración (mantenido)
   setTimeout(() => _dismissToast(toast), duration);
 }
 
+// Mejora: eliminación con animación y reordenamiento suave
 function _dismissToast(toast) {
   if (!toast.parentNode) return;
-  toast.classList.add('toast-exit');
-  toast.addEventListener('animationend', () => toast.remove(), { once: true });
+  const container = toast.parentNode;
+  const height = toast.offsetHeight;
+  toast.style.transition = 'transform 0.28s cubic-bezier(0.4, 0, 1, 1), opacity 0.28s ease, max-height 0.3s ease';
+  toast.style.transform = 'translateX(-110%)';
+  toast.style.opacity = '0';
+  toast.style.maxHeight = height + 'px';
+  requestAnimationFrame(() => {
+    toast.style.maxHeight = '0';
+    toast.style.marginBottom = '0';
+    toast.style.paddingTop = '0';
+    toast.style.paddingBottom = '0';
+  });
+  setTimeout(() => toast.remove(), 400);
 }
 
 // Semantic shorthand methods

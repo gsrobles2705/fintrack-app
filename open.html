@@ -5,31 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#131313">
   <title>FinTrack — Instalar App</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,100..1000&display=swap"
-        rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,100..1000&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:           #131313;
-      --card:         rgba(28, 27, 27, 0.82);
-      --border:       rgba(255, 255, 255, 0.07);
-      --green:        #50C878;
-      --green-dim:    rgba(80, 200, 120, 0.12);
-      --green-glow:   rgba(80, 200, 120, 0.22);
-      --blue:         #4285F4;
-      --blue-dim:     rgba(66, 133, 244, 0.12);
-      --text:         #e5e2e1;
-      --text-muted:   #bdcabc;
-      --text-faint:   #879487;
-      --font:         'Google Sans Flex', sans-serif;
+      --bg: #131313;
+      --card: rgba(28,27,27,0.82);
+      --border: rgba(255,255,255,0.07);
+      --green: #50C878;
+      --green-dim: rgba(80,200,120,0.12);
+      --green-glow: rgba(80,200,120,0.22);
+      --blue: #4285F4;
+      --blue-dim: rgba(66,133,244,0.12);
+      --text: #e5e2e1;
+      --text-muted: #bdcabc;
+      --text-faint: #879487;
+      --font: 'Google Sans Flex', sans-serif;
     }
-
-    * { margin: 0; padding: 0; box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent; }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       font-family: var(--font);
       background: var(--bg);
@@ -42,22 +36,16 @@
       padding: 24px 20px;
       overflow-x: hidden;
     }
-
     body::before {
       content: '';
       position: fixed;
       top: -140px; left: 50%;
       transform: translateX(-50%);
       width: 520px; height: 520px;
-      background: radial-gradient(circle,
-        rgba(0,230,118,.07) 0%,
-        rgba(0,230,118,.02) 45%,
-        transparent 70%);
+      background: radial-gradient(circle, rgba(0,230,118,.07) 0%, rgba(0,230,118,.02) 45%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
-
-    /* ─── Tarjeta principal ── */
     .card {
       position: relative;
       z-index: 1;
@@ -68,549 +56,135 @@
       border-radius: 28px;
       padding: 36px 24px 28px;
       text-align: center;
-      -webkit-backdrop-filter: blur(20px);
       backdrop-filter: blur(20px);
-      /* Fallback para Samsung Browser antiguo que no soporta backdrop-filter */
       background: #1c1b1b;
-      box-shadow:
-        0 0 0 1px rgba(255,255,255,.03) inset,
-        0 32px 80px rgba(0,0,0,.5);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.03) inset, 0 32px 80px rgba(0,0,0,.5);
     }
-    @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-      .card { background: rgba(28, 27, 27, 0.82); }
-    }
-
-    /* ─── Logo ── */
-    .logo {
-      font-size: 38px;
-      font-weight: 900;
-      letter-spacing: -1.5px;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-    .tagline {
-      font-size: 13px;
-      color: var(--text-faint);
-      letter-spacing: 0.2px;
-      margin-bottom: 28px;
-    }
-
-    /* ─── Ícono de browser ── */
-    .browser-wrap {
-      width: 72px; height: 72px;
-      margin: 0 auto 20px;
-      position: relative;
-    }
-    .browser-wrap img,
-    .browser-wrap svg { width: 72px; height: 72px; }
-
-    /* ─── Aviso ── */
-    .alert {
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.09);
-      border-radius: 16px;
-      padding: 14px 16px;
-      font-size: 13.5px;
-      color: var(--text-muted);
-      line-height: 1.55;
-      margin-bottom: 22px;
-      text-align: left;
-    }
+    @supports (backdrop-filter: blur(1px)) { .card { background: rgba(28,27,27,0.82); } }
+    .logo { font-size: 38px; font-weight: 900; letter-spacing: -1.5px; color: var(--text); margin-bottom: 6px; }
+    .tagline { font-size: 13px; color: var(--text-faint); letter-spacing: 0.2px; margin-bottom: 28px; }
+    .browser-wrap { width: 72px; height: 72px; margin: 0 auto 20px; position: relative; }
+    .browser-wrap img, .browser-wrap svg { width: 72px; height: 72px; }
+    .alert { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 16px; padding: 14px 16px; font-size: 13.5px; color: var(--text-muted); line-height: 1.55; margin-bottom: 22px; text-align: left; }
     .alert strong { color: var(--text); }
-
-    /* ─── Pasos ── */
     .steps { text-align: left; margin-bottom: 24px; }
-    .step {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      margin-bottom: 14px;
-    }
-    .step-num {
-      min-width: 26px; height: 26px;
-      background: var(--green-dim);
-      border: 1px solid rgba(80,200,120,.3);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 800;
-      color: var(--green);
-      flex-shrink: 0;
-    }
-    .step-num.blue-step {
-      background: var(--blue-dim);
-      border-color: rgba(66,133,244,.3);
-      color: var(--blue);
-    }
-    .step-text {
-      font-size: 13.5px;
-      color: var(--text-muted);
-      line-height: 1.45;
-      padding-top: 4px;
-    }
+    .step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+    .step-num { min-width: 26px; height: 26px; background: var(--green-dim); border: 1px solid rgba(80,200,120,.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--green); flex-shrink: 0; }
+    .step-num.blue-step { background: var(--blue-dim); border-color: rgba(66,133,244,.3); color: var(--blue); }
+    .step-text { font-size: 13.5px; color: var(--text-muted); line-height: 1.45; padding-top: 4px; }
     .step-text strong { color: var(--text); }
-
-    /* Chips visuales inline para los pasos */
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      background: rgba(255,255,255,.08);
-      border-radius: 6px;
-      padding: 1px 8px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: 0.1px;
-      vertical-align: middle;
-    }
-
-    /* Icono de compartir de iOS para usarlo en los pasos */
-    .share-icon-inline {
-      display: inline-block;
-      vertical-align: middle;
-      width: 14px; height: 14px;
-      margin-bottom: 1px;
-    }
-
-    /* ─── Botones ── */
-    .btn-primary {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      background: var(--green);
-      color: #000;
-      text-decoration: none;
-      border: none;
-      border-radius: 999px;
-      padding: 18px;
-      font-family: var(--font);
-      font-size: 16px;
-      font-weight: 800;
-      cursor: pointer;
-      letter-spacing: 0.2px;
-      transition: opacity .15s, transform .1s;
-      box-shadow: 0 0 24px var(--green-glow);
-      margin-bottom: 10px;
-    }
+    .pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,.08); border-radius: 6px; padding: 1px 8px; font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: 0.1px; vertical-align: middle; }
+    .share-icon-inline { display: inline-block; vertical-align: middle; width: 14px; height: 14px; margin-bottom: 1px; }
+    .btn-primary { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: var(--green); color: #000; text-decoration: none; border: none; border-radius: 999px; padding: 18px; font-family: var(--font); font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 0.2px; transition: opacity .15s, transform .1s; box-shadow: 0 0 24px var(--green-glow); margin-bottom: 10px; }
     .btn-primary:active { opacity: .82; transform: scale(.97); }
-    .btn-primary.blue-btn {
-      background: var(--blue);
-      box-shadow: 0 0 24px rgba(66,133,244,.22);
-    }
-
-    .btn-secondary {
-      width: 100%;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 999px;
-      padding: 14px;
-      font-family: var(--font);
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all .15s;
-    }
+    .btn-primary.blue-btn { background: var(--blue); box-shadow: 0 0 24px rgba(66,133,244,.22); }
+    .btn-secondary { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,.10); border-radius: 999px; padding: 14px; font-family: var(--font); font-size: 14px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .15s; }
     .btn-secondary:active { color: var(--text); border-color: rgba(255,255,255,.22); }
-
-    /* ─── Spinner ── */
-    .redirecting {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-    .spinner {
-      width: 40px; height: 40px;
-      border: 3px solid rgba(80,200,120,.2);
-      border-top-color: var(--green);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
+    .redirecting { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .spinner { width: 40px; height: 40px; border: 3px solid rgba(80,200,120,.2); border-top-color: var(--green); border-radius: 50%; animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .redirecting p { font-size: 15px; color: var(--text-muted); }
-
-    /* ─── Footer ── */
-    .footer {
-      margin-top: 20px;
-      font-size: 11px;
-      color: var(--text-faint);
-      letter-spacing: 0.2px;
-      position: relative; z-index: 1;
-    }
-
-    /* ─── Feedback "copiado" ── */
-    .copied-badge {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--green);
-      margin-top: 8px;
-      animation: fadeIn .2s ease;
-    }
+    .footer { margin-top: 20px; font-size: 11px; color: var(--text-faint); letter-spacing: 0.2px; position: relative; z-index: 1; }
+    .copied-badge { display: none; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--green); margin-top: 8px; animation: fadeIn .2s ease; }
     .copied-badge.show { display: flex; }
-    @keyframes fadeIn {
-      from { opacity:0; transform:translateY(4px); }
-      to   { opacity:1; transform:translateY(0);   }
-    }
-
-    /* ─── Divisor iOS ── */
-    .ios-divider {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 6px 0 18px;
-      color: var(--text-faint);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.8px;
-    }
-    .ios-divider::before,
-    .ios-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(255,255,255,.08);
-    }
-
-    /* ─── Aviso localStorage iOS ── */
-    .ios-storage-warning {
-      background: rgba(255,176,58,.06);
-      border: 1px solid rgba(255,176,58,.2);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 12px;
-      color: rgba(255,176,58,.85);
-      line-height: 1.5;
-      text-align: left;
-      margin-bottom: 20px;
-    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+    .ios-divider { display: flex; align-items: center; gap: 10px; margin: 6px 0 18px; color: var(--text-faint); font-size: 11px; font-weight: 600; letter-spacing: 0.8px; }
+    .ios-divider::before, .ios-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.08); }
+    .ios-storage-warning { background: rgba(255,176,58,.06); border: 1px solid rgba(255,176,58,.2); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: rgba(255,176,58,.85); line-height: 1.5; text-align: left; margin-bottom: 20px; }
     .ios-storage-warning strong { color: #FFB03A; }
-
-    /* Separador visual entre secciones de pasos */
-    .steps-section-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1.2px;
-      color: var(--text-faint);
-      text-align: left;
-      margin-bottom: 10px;
-      margin-top: 2px;
-    }
+    .steps-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: var(--text-faint); text-align: left; margin-bottom: 10px; margin-top: 2px; }
   </style>
 </head>
-
 <body>
   <div class="card" id="card">
-
     <p class="logo">FinTrack</p>
     <p class="tagline">Tu dinero, bajo control.</p>
 
-    <!-- ══ ESTADO A: Android no-Chrome → guía + intent:// ══ -->
+    <!-- ESTADO A: Android no-Chrome → guía + intent:// -->
     <div id="view-android-guide" style="display:none">
-      <div class="browser-wrap">
-        <!-- Chrome logo oficial a color -->
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48" height="72" width="72">
-          <defs>
-            <linearGradient id="a" x1="3.2173" y1="15" x2="44.7812" y2="15" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#d93025" /><stop offset="1" stop-color="#ea4335" />
-            </linearGradient>
-            <linearGradient id="b" x1="20.7219" y1="47.6791" x2="41.5039" y2="11.6837" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#fcc934" /><stop offset="1" stop-color="#fbbc04" />
-            </linearGradient>
-            <linearGradient id="c" x1="26.5981" y1="46.5015" x2="5.8161" y2="10.506" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#1e8e3e" /><stop offset="1" stop-color="#34a853" />
-            </linearGradient>
-          </defs>
-          <circle cx="24" cy="23.9947" r="12" style="fill:#fff"/>
-          <path d="M3.2154,36A24,24,0,1,0,12,3.2154,24,24,0,0,0,3.2154,36ZM34.3923,18A12,12,0,1,1,18,13.6077,12,12,0,0,1,34.3923,18Z" style="fill:none"/>
-          <path d="M24,12H44.7812a23.9939,23.9939,0,0,0-41.5639.0029L13.6079,30l.0093-.0024A11.9852,11.9852,0,0,1,24,12Z" style="fill:url(#a)"/>
-          <circle cx="24" cy="24" r="9.5" style="fill:#1a73e8"/>
-          <path d="M34.3913,30.0029,24.0007,48A23.994,23.994,0,0,0,44.78,12.0031H23.9989l-.0025.0093A11.985,11.985,0,0,1,34.3913,30.0029Z" style="fill:url(#b)"/>
-          <path d="M13.6086,30.0031,3.218,12.006A23.994,23.994,0,0,0,24.0025,48L34.3931,30.0029l-.0067-.0068a11.9852,11.9852,0,0,1-20.7778.007Z" style="fill:url(#c)"/>
-        </svg>
-      </div>
-
-      <div class="alert">
-        Tu navegador actual no permite instalar FinTrack como app.
-        Necesitas abrirla con <strong>Google Chrome</strong>.
-      </div>
-
+      <div class="browser-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" height="72" width="72"><circle cx="24" cy="24" r="12" fill="#fff"/><path d="M24,12H44.7812a24,24,0,0,0-41.5639.0029L13.6079,30l.0093-.0024A12,12,0,0,1,24,12Z" fill="#ea4335"/><circle cx="24" cy="24" r="9.5" fill="#1a73e8"/><path d="M34.3913,30.0029,24.0007,48A24,24,0,0,0,44.78,12.0031H23.9989l-.0025.0093A12,12,0,0,1,34.3913,30.0029Z" fill="#fbbc04"/><path d="M13.6086,30.0031,3.218,12.006A24,24,0,0,0,24.0025,48L34.3931,30.0029l-.0067-.0068A12,12,0,0,1,13.6086,30.0031Z" fill="#34a853"/></svg></div>
+      <div class="alert">Tu navegador actual no permite instalar FinTrack como app. Necesitas abrirla con <strong>Google Chrome</strong>.</div>
       <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <p class="step-text">Pulsa <strong>"Abrir en Chrome"</strong> debajo</p>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <p class="step-text">
-            Toca los <span class="pill">⋮</span> tres puntos arriba a la derecha
-          </p>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <p class="step-text">
-            Elige <strong>"Añadir a pantalla de inicio"</strong>
-            o <strong>"Instalar app"</strong> → listo
-          </p>
-        </div>
+        <div class="step"><div class="step-num">1</div><p class="step-text">Pulsa <strong>"Abrir en Chrome"</strong> debajo</p></div>
+        <div class="step"><div class="step-num">2</div><p class="step-text">Toca los <span class="pill">⋮</span> tres puntos arriba a la derecha</p></div>
+        <div class="step"><div class="step-num">3</div><p class="step-text">Elige <strong>"Añadir a pantalla de inicio"</strong> o <strong>"Instalar app"</strong> → listo</p></div>
       </div>
-
-      <a class="btn-primary" id="btn-chrome"
-         href="intent://gsrobles2705.github.io/fintrack-app/#Intent;scheme=https;package=com.android.chrome;end">
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48" height="22" width="22">
-          <defs>
-            <linearGradient id="a2" x1="3.2173" y1="15" x2="44.7812" y2="15" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#d93025"/><stop offset="1" stop-color="#ea4335"/>
-            </linearGradient>
-            <linearGradient id="b2" x1="20.7219" y1="47.6791" x2="41.5039" y2="11.6837" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#fcc934"/><stop offset="1" stop-color="#fbbc04"/>
-            </linearGradient>
-            <linearGradient id="c2" x1="26.5981" y1="46.5015" x2="5.8161" y2="10.506" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#1e8e3e"/><stop offset="1" stop-color="#34a853"/>
-            </linearGradient>
-          </defs>
-          <circle cx="24" cy="23.9947" r="12" style="fill:#fff"/>
-          <path d="M3.2154,36A24,24,0,1,0,12,3.2154,24,24,0,0,0,3.2154,36ZM34.3923,18A12,12,0,1,1,18,13.6077,12,12,0,0,1,34.3923,18Z" style="fill:none"/>
-          <path d="M24,12H44.7812a23.9939,23.9939,0,0,0-41.5639.0029L13.6079,30l.0093-.0024A11.9852,11.9852,0,0,1,24,12Z" style="fill:url(#a2)"/>
-          <circle cx="24" cy="24" r="9.5" style="fill:#1a73e8"/>
-          <path d="M34.3913,30.0029,24.0007,48A23.994,23.994,0,0,0,44.78,12.0031H23.9989l-.0025.0093A11.985,11.985,0,0,1,34.3913,30.0029Z" style="fill:url(#b2)"/>
-          <path d="M13.6086,30.0031,3.218,12.006A23.994,23.994,0,0,0,24.0025,48L34.3931,30.0029l-.0067-.0068a11.9852,11.9852,0,0,1-20.7778.007Z" style="fill:url(#c2)"/>
-        </svg>
-        Abrir en Chrome
-      </a>
-
+      <a class="btn-primary" id="btn-chrome" href="intent://gsrobles2705.github.io/fintrack-app/#Intent;scheme=https;package=com.android.chrome;end"><svg viewBox="0 0 48 48" height="22" width="22"><circle cx="24" cy="24" r="12" fill="#fff"/><path d="M24,12H44.7812a24,24,0,0,0-41.5639.0029L13.6079,30l.0093-.0024A12,12,0,0,1,24,12Z" fill="#ea4335"/><circle cx="24" cy="24" r="9.5" fill="#1a73e8"/><path d="M34.3913,30.0029,24.0007,48A24,24,0,0,0,44.78,12.0031H23.9989l-.0025.0093A12,12,0,0,1,34.3913,30.0029Z" fill="#fbbc04"/><path d="M13.6086,30.0031,3.218,12.006A24,24,0,0,0,24.0025,48L34.3931,30.0029l-.0067-.0068A12,12,0,0,1,13.6086,30.0031Z" fill="#34a853"/></svg>Abrir en Chrome</a>
       <button class="btn-secondary" onclick="copyLink()">Copiar link manualmente</button>
-      <div class="copied-badge" id="copied-badge-android">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-             stroke="#50C878" stroke-width="2.5" stroke-linecap="round">
-          <path d="M5 12l5 5l10-10"/>
-        </svg>
-        Link copiado — pégalo en Chrome
-      </div>
+      <div class="copied-badge" id="copied-badge-android"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#50C878" stroke-width="2.5"><path d="M5 12l5 5l10-10"/></svg>Link copiado — pégalo en Chrome</div>
     </div>
 
-    <!-- ══ ESTADO B: Chrome para iOS (CriOS) ══ -->
+    <!-- ESTADO B: Chrome para iOS (CriOS) -->
     <div id="view-ios-chrome" style="display:none">
-      <div class="browser-wrap">
-        <!-- Safari SVG -->
-        <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="36" cy="36" r="36" fill="#1C7CF9"/>
-          <circle cx="36" cy="36" r="29" fill="white" opacity="0.15"/>
-          <circle cx="36" cy="36" r="22" fill="white" opacity="0.9"/>
-          <!-- Brújula -->
-          <circle cx="36" cy="36" r="20" fill="none" stroke="#1C7CF9" stroke-width="1.5" opacity="0.3"/>
-          <polygon points="36,18 39,34 36,31 33,34" fill="#F05454"/>
-          <polygon points="36,54 33,38 36,41 39,38" fill="#888"/>
-          <circle cx="36" cy="36" r="2.5" fill="#1C7CF9"/>
-        </svg>
-      </div>
-
-      <div class="alert">
-        Chrome en iPhone <strong>no permite instalar apps</strong> como esta.
-        Necesitas abrirla en <strong>Safari</strong>.
-      </div>
-
+      <div class="browser-wrap"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="36" fill="#1C7CF9"/><circle cx="36" cy="36" r="29" fill="white" opacity="0.15"/><circle cx="36" cy="36" r="22" fill="white" opacity="0.9"/><circle cx="36" cy="36" r="20" fill="none" stroke="#1C7CF9" stroke-width="1.5" opacity="0.3"/><polygon points="36,18 39,34 36,31 33,34" fill="#F05454"/><polygon points="36,54 33,38 36,41 39,38" fill="#888"/><circle cx="36" cy="36" r="2.5" fill="#1C7CF9"/></svg></div>
+      <div class="alert">Chrome en iPhone <strong>no permite instalar apps</strong> como esta. Necesitas abrirla en <strong>Safari</strong>.</div>
       <div class="steps">
-        <div class="step">
-          <div class="step-num blue-step">1</div>
-          <p class="step-text">Pulsa <strong>"Copiar link"</strong> debajo</p>
-        </div>
-        <div class="step">
-          <div class="step-num blue-step">2</div>
-          <p class="step-text">
-            Abre <strong>Safari</strong>
-            <svg class="share-icon-inline" viewBox="0 0 24 24" fill="none" stroke="#bdcabc" stroke-width="2" stroke-linecap="round"><path d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
-            y pega el link en la barra de direcciones
-          </p>
-        </div>
-        <div class="step">
-          <div class="step-num blue-step">3</div>
-          <p class="step-text">
-            Sigue las instrucciones para instalar desde Safari
-          </p>
-        </div>
+        <div class="step"><div class="step-num blue-step">1</div><p class="step-text">Pulsa <strong>"Copiar link"</strong> debajo</p></div>
+        <div class="step"><div class="step-num blue-step">2</div><p class="step-text">Abre <strong>Safari</strong> <svg class="share-icon-inline" viewBox="0 0 24 24" fill="none" stroke="#bdcabc" stroke-width="2"><path d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg> y pega el link en la barra de direcciones</p></div>
+        <div class="step"><div class="step-num blue-step">3</div><p class="step-text">Sigue las instrucciones para instalar desde Safari</p></div>
       </div>
-
-      <button class="btn-primary blue-btn" onclick="copyLinkIOS('copied-badge-ioschrome')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
-        Copiar link de FinTrack
-      </button>
-      <div class="copied-badge" id="copied-badge-ioschrome">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-             stroke="#50C878" stroke-width="2.5" stroke-linecap="round">
-          <path d="M5 12l5 5l10-10"/>
-        </svg>
-        Link copiado — pégalo en Safari
-      </div>
+      <button class="btn-primary blue-btn" onclick="copyLinkIOS('copied-badge-ioschrome')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar link de FinTrack</button>
+      <div class="copied-badge" id="copied-badge-ioschrome"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#50C878" stroke-width="2.5"><path d="M5 12l5 5l10-10"/></svg>Link copiado — pégalo en Safari</div>
     </div>
 
-    <!-- ══ ESTADO C: Safari iOS → instrucciones de instalación ══ -->
+    <!-- ESTADO C: Safari iOS → instrucciones de instalación -->
     <div id="view-ios-safari" style="display:none">
-      <div class="browser-wrap">
-        <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="36" cy="36" r="36" fill="#1C7CF9"/>
-          <circle cx="36" cy="36" r="29" fill="white" opacity="0.15"/>
-          <circle cx="36" cy="36" r="22" fill="white" opacity="0.9"/>
-          <circle cx="36" cy="36" r="20" fill="none" stroke="#1C7CF9" stroke-width="1.5" opacity="0.3"/>
-          <polygon points="36,18 39,34 36,31 33,34" fill="#F05454"/>
-          <polygon points="36,54 33,38 36,41 39,38" fill="#888"/>
-          <circle cx="36" cy="36" r="2.5" fill="#1C7CF9"/>
-        </svg>
-      </div>
-
-      <div class="alert">
-        ¡Estás en <strong>Safari</strong>! Puedes instalar FinTrack
-        en tu pantalla de inicio en 3 pasos.
-      </div>
-
+      <div class="browser-wrap"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="36" fill="#1C7CF9"/><circle cx="36" cy="36" r="29" fill="white" opacity="0.15"/><circle cx="36" cy="36" r="22" fill="white" opacity="0.9"/><circle cx="36" cy="36" r="20" fill="none" stroke="#1C7CF9" stroke-width="1.5" opacity="0.3"/><polygon points="36,18 39,34 36,31 33,34" fill="#F05454"/><polygon points="36,54 33,38 36,41 39,38" fill="#888"/><circle cx="36" cy="36" r="2.5" fill="#1C7CF9"/></svg></div>
+      <div class="alert">¡Estás en <strong>Safari</strong>! Puedes instalar FinTrack en tu pantalla de inicio en 3 pasos.</div>
       <div class="steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <p class="step-text">
-            Toca el botón
-            <span class="pill">
-              <!-- iOS share icon -->
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-              Compartir
-            </span>
-            en la barra inferior de Safari
-          </p>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <p class="step-text">
-            Baja en el menú y toca
-            <strong>"Añadir a pantalla de inicio"</strong>
-          </p>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <p class="step-text">
-            Toca <strong>"Añadir"</strong> en la esquina superior derecha → ¡listo!
-          </p>
-        </div>
+        <div class="step"><div class="step-num">1</div><p class="step-text">Toca el botón <span class="pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Compartir</span> en la barra inferior de Safari</p></div>
+        <div class="step"><div class="step-num">2</div><p class="step-text">Baja en el menú y toca <strong>"Añadir a pantalla de inicio"</strong></p></div>
+        <div class="step"><div class="step-num">3</div><p class="step-text">Toca <strong>"Añadir"</strong> en la esquina superior derecha → ¡listo!</p></div>
       </div>
-
-      <!-- Aviso de localStorage bug iOS -->
-      <div id="ios-storage-warn" class="ios-storage-warning" style="display:none">
-        <strong>⚠️ Aviso:</strong> Si ya instalaste la app antes, abre FinTrack
-        desde su ícono en la pantalla de inicio para ver tus datos.
-        Safari y la app instalada no comparten el mismo almacenamiento.
-      </div>
-
-      <button class="btn-secondary" onclick="copyLinkIOS('copied-badge-iossafari')" style="margin-top:4px">
-        Copiar link
-      </button>
-      <div class="copied-badge" id="copied-badge-iossafari">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-             stroke="#50C878" stroke-width="2.5" stroke-linecap="round">
-          <path d="M5 12l5 5l10-10"/>
-        </svg>
-        Link copiado
-      </div>
+      <div id="ios-storage-warn" class="ios-storage-warning" style="display:none"><strong>⚠️ Aviso:</strong> Si ya instalaste la app antes, abre FinTrack desde su ícono en la pantalla de inicio para ver tus datos. Safari y la app instalada no comparten el mismo almacenamiento.</div>
+      <button class="btn-secondary" onclick="copyLinkIOS('copied-badge-iossafari')" style="margin-top:4px">Copiar link</button>
+      <div class="copied-badge" id="copied-badge-iossafari"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#50C878" stroke-width="2.5"><path d="M5 12l5 5l10-10"/></svg>Link copiado</div>
     </div>
 
-    <!-- ══ ESTADO D: Desktop o Chrome Android → redirigir ══ -->
+    <!-- ESTADO D: Desktop o Chrome Android → redirigir con versión forzada -->
     <div id="view-redirect" style="display:none">
-      <div class="redirecting">
-        <div class="spinner"></div>
-        <p>Abriendo FinTrack…</p>
-      </div>
+      <div class="redirecting"><div class="spinner"></div><p>Abriendo FinTrack…</p></div>
     </div>
-
-  </div><!-- /card -->
-
+  </div>
   <p class="footer">© 2026 FinTrack · gsrobles2705.github.io/fintrack-app</p>
-
   <script>
     const APP_URL = 'https://gsrobles2705.github.io/fintrack-app/';
-    const ua      = navigator.userAgent || '';
-
-    // Detecciones
-    const isIOS        = /iPhone|iPad|iPod/i.test(ua);
-    const isAndroid    = /Android/i.test(ua);
-    const isSamsung    = /SamsungBrowser/i.test(ua);
-    const isChromeiOS  = /CriOS/i.test(ua);           // Chrome en iOS
-    const isSafariIOS  = isIOS && /Safari/i.test(ua) && !isChromeiOS && !/FxiOS|EdgiOS/i.test(ua);
-    const isOtherIOS   = isIOS && !isSafariIOS;       // Chrome, Firefox, Edge en iOS
-    const isChrome     = /Chrome/i.test(ua) && !isSamsung && !/EdgA?/i.test(ua) && !/OPR/i.test(ua) && !isChromeiOS;
+    const FORCED_URL = APP_URL + 'index.html?v=' + Date.now() + '&nocache=' + Math.random();
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
+    const isSamsung = /SamsungBrowser/i.test(ua);
+    const isChromeiOS = /CriOS/i.test(ua);
+    const isSafariIOS = isIOS && /Safari/i.test(ua) && !isChromeiOS && !/FxiOS|EdgiOS/i.test(ua);
+    const isOtherIOS = isIOS && !isSafariIOS;
+    const isChrome = /Chrome/i.test(ua) && !isSamsung && !/EdgA?/i.test(ua) && !/OPR/i.test(ua) && !isChromeiOS;
 
     function showOnly(id) {
-      ['view-android-guide','view-ios-chrome','view-ios-safari','view-redirect']
-        .forEach(v => document.getElementById(v).style.display = v === id ? (id === 'view-redirect' ? 'flex' : 'block') : 'none');
+      ['view-android-guide','view-ios-chrome','view-ios-safari','view-redirect'].forEach(v => document.getElementById(v).style.display = v === id ? (id === 'view-redirect' ? 'flex' : 'block') : 'none');
     }
 
-    if (isOtherIOS) {
-      // Chrome para iOS u otro browser no-Safari en iPhone
-      showOnly('view-ios-chrome');
-
-    } else if (isSafariIOS) {
-      // Safari en iPhone/iPad — instrucciones de instalación
+    if (isOtherIOS) showOnly('view-ios-chrome');
+    else if (isSafariIOS) {
       showOnly('view-ios-safari');
-
-      // Si navigator.standalone existe y es false, significa que
-      // Safari tiene la app instalada pero el usuario NO la abrió desde el ícono
       if ('standalone' in navigator && !navigator.standalone) {
-        // Detectar si ya fue instalada previamente (revisar si hay datos)
-        try {
-          const tieneApp = !!localStorage.getItem('fintrack_user');
-          if (tieneApp) {
-            document.getElementById('ios-storage-warn').style.display = 'block';
-          }
-        } catch(e) {}
+        try { if (!!localStorage.getItem('fintrack_user')) document.getElementById('ios-storage-warn').style.display = 'block'; } catch(e) {}
       }
-
     } else if (!isAndroid || isChrome) {
-      // Desktop de cualquier OS, o Chrome en Android → ir directo a la app
       showOnly('view-redirect');
-      setTimeout(() => window.location.replace(APP_URL), 600);
-
+      setTimeout(() => window.location.replace(FORCED_URL), 600);
     } else {
-      // Samsung Browser, Firefox para Android u otros → guía para abrir en Chrome
       showOnly('view-android-guide');
     }
 
-    // ── Helpers de copiado ──────────────────────────────────
-    function copyLink() {
-      _copy('copied-badge-android',
-        'Link copiado — pégalo en Chrome',
-        'Copiar link manualmente');
-    }
-
-    function copyLinkIOS(badgeId) {
-      _copy(badgeId);
-    }
-
-    function _copy(badgeId, successMsg, btnText) {
+    function copyLink() { _copy('copied-badge-android'); }
+    function copyLinkIOS(badgeId) { _copy(badgeId); }
+    function _copy(badgeId) {
       const badge = document.getElementById(badgeId);
-      navigator.clipboard.writeText(APP_URL)
-        .then(() => _showCopied(badge))
-        .catch(() => {
-          // Fallback
-          const el = document.createElement('input');
-          el.value = APP_URL;
-          document.body.appendChild(el);
-          el.select();
-          document.execCommand('copy');
-          document.body.removeChild(el);
-          _showCopied(badge);
-        });
+      navigator.clipboard.writeText(APP_URL).then(() => _showCopied(badge)).catch(() => {
+        const el = document.createElement('input'); el.value = APP_URL; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); _showCopied(badge);
+      });
     }
-
-    function _showCopied(badge) {
-      if (!badge) return;
-      badge.classList.add('show');
-      setTimeout(() => badge.classList.remove('show'), 3000);
-    }
+    function _showCopied(badge) { if(badge){badge.classList.add('show'); setTimeout(()=>badge.classList.remove('show'),3000);} }
   </script>
-
 </body>
 </html>
