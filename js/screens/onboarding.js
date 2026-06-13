@@ -4,36 +4,30 @@ let _selectedCountryOnb       = COUNTRIES[0];
 let _selectedCurrencyOnb      = COUNTRIES[0].currency;
 let _countryComboOpenOnb      = false;
 let _currencyDropdownOpenOnb  = false;
+let _onbStep = 1; // 1, 2, 3
 
 function initOnboarding() {
   _selectedCountryOnb       = COUNTRIES[0];
   _selectedCurrencyOnb      = COUNTRIES[0].currency;
   _countryComboOpenOnb      = false;
   _currencyDropdownOpenOnb  = false;
+  _onbStep = 1;
 
-  const input = document.getElementById('onb-combo-input');
-  if (!input) return;
-
-  input.value = _selectedCountryOnb.country;
-
-  // Clear any previous errors on (re)entering onboarding
   clearFieldError('input-nombre', 'error-onb-nombre');
   clearFieldError('input-capital-inicial', 'error-capital-inicial');
 
-  // Enable real-time validation on the name field
   const nameInput = document.getElementById('input-nombre');
   if (nameInput) {
     nameInput.oninput = () => {
-      if (nameInput.value.trim()) {
-        clearFieldError('input-nombre', 'error-onb-nombre');
-      }
+      if (nameInput.value.trim()) clearFieldError('input-nombre', 'error-onb-nombre');
     };
   }
 
-  // Prevent duplicate listeners by cloning the node
+  const input = document.getElementById('onb-combo-input');
+  if (!input) return;
+  input.value = _selectedCountryOnb.country;
   const freshInput = input.cloneNode(true);
   input.parentNode.replaceChild(freshInput, input);
-
   freshInput.onfocus = () => { freshInput.value = ''; _openCountryComboOnb(''); };
   freshInput.oninput = () => _openCountryComboOnb(freshInput.value.trim());
   freshInput.onblur  = () => {
@@ -44,7 +38,48 @@ function initOnboarding() {
   document.addEventListener('mousedown', _closeCurrencyOnbIfOutside);
 
   _renderCurrencyOnbDropdown();
+  _goToOnbStep(1);
 }
+
+function _goToOnbStep(step) {
+  _onbStep = step;
+  const steps = ['onb-step-1','onb-step-2','onb-step-3'];
+  steps.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('onb-step-active', 'onb-step-exit-left');
+    if (i + 1 === step) {
+      el.style.display = 'block';
+      requestAnimationFrame(() => el.classList.add('onb-step-active'));
+    } else {
+      el.style.display = 'none';
+    }
+  });
+  // Progress dots
+  document.querySelectorAll('.onb-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i + 1 <= step);
+  });
+}
+
+function onbNextStep() {
+  if (_onbStep === 1) {
+    const name = document.getElementById('input-nombre')?.value.trim();
+    if (!name) {
+      setFieldError('input-nombre', 'error-onb-nombre', 'Por favor ingresa tu nombre');
+      return;
+    }
+    clearFieldError('input-nombre', 'error-onb-nombre');
+  }
+  if (_onbStep < 3) _goToOnbStep(_onbStep + 1);
+  vibrate(30);
+}
+
+function onbPrevStep() {
+  if (_onbStep > 1) _goToOnbStep(_onbStep - 1);
+}
+
+window.onbNextStep = onbNextStep;
+window.onbPrevStep = onbPrevStep;
 
 // ── Country combobox ──────────────────────────────────────────────
 
@@ -180,32 +215,27 @@ function validarCapitalInicial(value) {
 // ── Save ──────────────────────────────────────────────────────────
 
 function guardarUsuario() {
+  if (_onbStep < 3) { onbNextStep(); return; }
+
   const nameEl = document.getElementById('input-nombre');
   const name   = nameEl ? nameEl.value.trim() : '';
-
-  // Validate name
   if (!name) {
-    setFieldError('input-nombre', 'error-onb-nombre',
-      'Por favor ingresa tu nombre para continuar');
+    _goToOnbStep(1);
+    setFieldError('input-nombre', 'error-onb-nombre', 'Por favor ingresa tu nombre para continuar');
     nameEl?.focus();
     return;
   }
-  clearFieldError('input-nombre', 'error-onb-nombre');
 
-  // Validate initial capital
   const capitalEl  = document.getElementById('input-capital-inicial');
   const capitalStr = capitalEl?.value ?? '';
   const capital    = parseFloat(capitalStr);
-
   if (capitalStr !== '' && capital < 0) {
-    setFieldError('input-capital-inicial', 'error-capital-inicial',
-      'El capital no puede ser negativo');
+    setFieldError('input-capital-inicial', 'error-capital-inicial', 'El capital no puede ser negativo');
     capitalEl?.focus();
     return;
   }
 
-  const currencyObj = COUNTRIES.find(p => p.currency === _selectedCurrencyOnb)
-                      ?? _selectedCountryOnb;
+  const currencyObj = COUNTRIES.find(p => p.currency === _selectedCurrencyOnb) ?? _selectedCountryOnb;
 
   document.removeEventListener('mousedown', _closeCountryComboOnbIfOutside);
   document.removeEventListener('mousedown', _closeCurrencyOnbIfOutside);
@@ -217,7 +247,6 @@ function guardarUsuario() {
     symbol:   currencyObj.symbol
   });
 
-  // Initial capital (optional): only if it is a positive number
   if (capitalStr !== '' && capital > 0) {
     Storage.addTransaction({
       id: Date.now().toString(),
@@ -230,5 +259,6 @@ function guardarUsuario() {
     });
   }
 
+  Haptics?.success();
   navigate(SCREENS.HOME);
 }

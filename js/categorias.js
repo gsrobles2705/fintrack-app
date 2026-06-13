@@ -33,6 +33,14 @@ function getSpecialCategory(id) {
   return null;
 }
 
+// ─────────────────────────────────────────────────────────────────
+// COLOR PALETTE para categorías personalizadas
+// ─────────────────────────────────────────────────────────────────
+const CATEGORY_COLORS = [
+  '#50C878', '#F05454', '#FFB03A', '#4285F4', '#A78BFA',
+  '#34C5B1', '#FF7F50', '#63C5DA', '#E91E8C', '#8BC34A'
+];
+
 // ==========================================
 // 2. HELPERS
 // ==========================================
@@ -71,9 +79,9 @@ function _countTransactionsByCategory(catId) {
   return Storage.getTransactions().filter(t => t.category === catId).length;
 }
 
-// ==========================================
-// 3. ACTIVE CATEGORIES (visible in the grid)
-// ==========================================
+// ─────────────────────────────────────────────────────────────────
+// ACTIVE CATEGORIES (grid visibles)
+// ─────────────────────────────────────────────────────────────────
 function getActiveCategories(tipo) {
   const storageType = tipo === 'gasto' ? 'expense' : 'income';
   let activeIds = Storage.getActiveCategories(storageType);
@@ -91,13 +99,11 @@ function getActiveCategories(tipo) {
   return ordered;
 }
 
-function getCategorias(tipo) {
-  return getActiveCategories(tipo);
-}
+function getCategorias(tipo) { return getActiveCategories(tipo); }
 
-// ==========================================
-// 4. ICON PICKER (grouped)
-// ==========================================
+// ─────────────────────────────────────────────────────────────────
+// ICON PICKER
+// ─────────────────────────────────────────────────────────────────
 function _renderIconPicker() {
   const grid = document.getElementById('cat-icon-grid');
   if (!grid) return;
@@ -114,9 +120,9 @@ function _renderIconPicker() {
   grid.innerHTML = html;
 }
 
-// ==========================================
-// 5. MODAL MANAGEMENT (unified)
-// ==========================================
+// ─────────────────────────────────────────────────────────────────
+// MODAL DE GESTIÓN (muestra colores en la lista)
+// ─────────────────────────────────────────────────────────────────
 let _categoryType = 'gasto';
 let _editingCategoryId = null;
 let _selectedIconKey = 'categoria';
@@ -143,11 +149,13 @@ function renderManageModal() {
   let html = '';
   allCategories.forEach(cat => {
     const isActive = activeIds.includes(cat.id);
+    const colorStyle = cat.color ? `style="background:${cat.color}20; border-color:${cat.color}"` : '';
     html += `
       <div class="cat-manage-item">
-        <div class="cat-manage-icon">${Icons.get(cat.iconKey)}</div>
+        <div class="cat-manage-icon" ${colorStyle}>${Icons.get(cat.iconKey)}</div>
         <div class="cat-manage-info">
           <p class="cat-manage-label">${cat.label}</p>
+          ${cat.color ? `<span class="cat-manage-meta" style="color:${cat.color}">● Color asignado</span>` : ''}
         </div>
         <div class="cat-manage-acciones">
           <button class="cat-btn-edit" onclick="abrirFormCategoria('${cat.id}')">
@@ -172,7 +180,6 @@ function renderManageModal() {
         </div>
       </div>`;
   });
-  
   container.innerHTML = html;
   
   container.querySelectorAll('.cat-toggle').forEach(toggle => {
@@ -211,7 +218,7 @@ function renderManageModal() {
   resetBtn.onclick = () => resetDefaultCategories();
   container.parentElement.appendChild(resetBtn);
 
-  // Botón Cerrar (reutilizamos el estilo btn-ghost)
+  // Botón Cerrar
   const closeBtn = document.createElement('button');
   closeBtn.className = 'btn-ghost';
   closeBtn.textContent = 'Cerrar';
@@ -219,9 +226,9 @@ function renderManageModal() {
   container.parentElement.appendChild(closeBtn);
 }
 
-// ==========================================
-// 6. ADD / EDIT CUSTOM CATEGORY
-// ==========================================
+// ─────────────────────────────────────────────────────────────────
+// FORMULARIO NUEVA/EDITAR categoría (asigna color automático)
+// ─────────────────────────────────────────────────────────────────
 function abrirFormCategoria(id = null) {
   _editingCategoryId = id;
   const titleEl = document.getElementById('modal-cat-form-titulo');
@@ -275,12 +282,31 @@ function guardarCategoria() {
     return;
   }
   
+  // Asignar color si es nueva categoría
+  const existingColors = allCats.map(c => c.color).filter(Boolean);
+  let assignedColor = null;
+  if (!_editingCategoryId) {
+    for (let col of CATEGORY_COLORS) {
+      if (!existingColors.includes(col)) {
+        assignedColor = col;
+        break;
+      }
+    }
+    if (!assignedColor) assignedColor = CATEGORY_COLORS[allCats.length % CATEGORY_COLORS.length];
+  }
+  
   if (_editingCategoryId) {
-    Storage.updateCategory(storageType, _editingCategoryId, { label, iconKey: _selectedIconKey });
+    const updateData = { label, iconKey: _selectedIconKey };
+    if (assignedColor) updateData.color = assignedColor;
+    Storage.updateCategory(storageType, _editingCategoryId, updateData);
     Toast.success('Categoría actualizada', `"${label}" fue modificada correctamente.`);
   } else {
     const newId = `custom_${Date.now()}`;
-    Storage.addCustomCategory(storageType, { id: newId, label, iconKey: _selectedIconKey, custom: true });
+    Storage.addCustomCategory(storageType, {
+      id: newId, label, iconKey: _selectedIconKey,
+      color: assignedColor,
+      custom: true
+    });
     Toast.success('Categoría añadida', `"${label}" aparecerá siempre en tu grid.`);
   }
   
@@ -289,9 +315,9 @@ function guardarCategoria() {
   renderCategorias();
 }
 
-// ==========================================
-// 7. DELETE CATEGORY (direct removal)
-// ==========================================
+// ─────────────────────────────────────────────────────────────────
+// DELETE CATEGORY
+// ─────────────────────────────────────────────────────────────────
 async function deleteCategory(id) {
   if (id === 'otro') return;
   const cat = getCategoryDefinition(id);
@@ -313,9 +339,9 @@ async function deleteCategory(id) {
   Toast.success('Categoría eliminada', `"${cat.label}" fue eliminada.`);
 }
 
-// ==========================================
-// 8. RESET DEFAULT CATEGORIES (merge)
-// ==========================================
+// ─────────────────────────────────────────────────────────────────
+// RESET DEFAULT CATEGORIES
+// ─────────────────────────────────────────────────────────────────
 async function resetDefaultCategories() {
   const ok = await AppConfirm({
     titulo: 'Restablecer categorías',
@@ -334,9 +360,40 @@ async function resetDefaultCategories() {
   Toast.success('Categorías restablecidas', 'Se añadieron las categorías base faltantes.');
 }
 
-// ==========================================
-// 9. LEGACY COMPATIBILITY FUNCTIONS
-// ==========================================
+// ─────────────────────────────────────────────────────────────────
+// RENDER de la cuadrícula en la pantalla de registro (con color visual)
+// ─────────────────────────────────────────────────────────────────
+function renderCategorias() {
+  const categories = getCategorias(currentType);
+  const modeClass  = `modo-${currentType}`;
+  const container  = document.getElementById('categorias-container');
+  const activeOtherText = (currentCategory && currentCategory.startsWith('otro_libre:'))
+    ? currentCategory.slice('otro_libre:'.length)
+    : '';
+  const isOtherSelected = currentCategory === 'otro' || (currentCategory && currentCategory.startsWith('otro_libre:'));
+  
+  container.innerHTML = categories.map(cat => {
+    const isOther   = cat.id === 'otro';
+    const isSelected = isOther ? isOtherSelected : currentCategory === cat.id;
+    const colorStyle = cat.color ? `style="--cat-color:${cat.color}"` : '';
+    return `
+      <button
+        class="categoria-btn ${isSelected ? `selected ${modeClass}` : ''}"
+        onclick="${isOther ? 'toggleCategoriaOtro()' : `seleccionarCategoria('${cat.id}')`}"
+        ${colorStyle}>
+        <div class="categoria-icon-wrap" style="${cat.color ? `border-color:${cat.color}80` : ''}">
+          ${Icons.get(cat.iconKey)}
+        </div>
+        <span class="categoria-label">${cat.label}</span>
+      </button>`;
+  }).join('');
+  
+  _renderOtherInput(isOtherSelected, activeOtherText, modeClass);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// LEGACY COMPATIBILITY FUNCTIONS
+// ─────────────────────────────────────────────────────────────────
 function _getLabelCategoria(catId) {
   if (catId && catId.startsWith('otro_libre:')) {
     return catId.slice('otro_libre:'.length);

@@ -79,7 +79,8 @@ function showToast(type, title, message = '', duration = 3000) {
     </div>`;
 
   container.appendChild(toast);
-  vibrate(30); // micro-vibración al aparecer
+  // Micro-vibración al aparecer
+  if (navigator.vibrate) navigator.vibrate(30);
 
   // Swipe to dismiss (izquierda/derecha)
   let touchStartX = 0, touchStartY = 0, isSwiping = false;
@@ -89,14 +90,16 @@ function showToast(type, title, message = '', duration = 3000) {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     isSwiping = false;
-    toast.style.transition = 'transform 0.15s ease';
+    toast.style.transition = 'transform 0.12s ease, opacity 0.12s ease';
   };
   const onTouchMove = (e) => {
     const dx = e.touches[0].clientX - touchStartX;
     const dy = e.touches[0].clientY - touchStartY;
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
       e.preventDefault();
+      e.stopPropagation();
       isSwiping = true;
+      toast.style.transition = 'none';
       toast.style.transform = `translateX(${dx}px)`;
       toast.style.opacity = `${1 - Math.min(Math.abs(dx) / (SWIPE_THRESHOLD * 1.5), 1)}`;
     }
@@ -107,6 +110,7 @@ function showToast(type, title, message = '', duration = 3000) {
     if (Math.abs(dx) >= SWIPE_THRESHOLD) {
       _dismissToast(toast);
     } else {
+      toast.style.transition = 'transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.22s ease';
       toast.style.transform = '';
       toast.style.opacity = '';
     }
@@ -121,22 +125,38 @@ function showToast(type, title, message = '', duration = 3000) {
   setTimeout(() => _dismissToast(toast), duration);
 }
 
-// Mejora: eliminación con animación y reordenamiento suave
+// Smooth dismiss: slide out first, then collapse height so siblings flow without lag
 function _dismissToast(toast) {
-  if (!toast.parentNode) return;
-  const container = toast.parentNode;
+  if (!toast.parentNode || toast._dismissing) return;
+  toast._dismissing = true;
+
   const height = toast.offsetHeight;
-  toast.style.transition = 'transform 0.28s cubic-bezier(0.4, 0, 1, 1), opacity 0.28s ease, max-height 0.3s ease';
+
+  // Step 1: slide out + fade (fast)
+  toast.style.transition = 'transform 0.22s cubic-bezier(0.4, 0, 1, 1), opacity 0.18s ease';
   toast.style.transform = 'translateX(-110%)';
   toast.style.opacity = '0';
-  toast.style.maxHeight = height + 'px';
-  requestAnimationFrame(() => {
-    toast.style.maxHeight = '0';
-    toast.style.marginBottom = '0';
-    toast.style.paddingTop = '0';
-    toast.style.paddingBottom = '0';
-  });
-  setTimeout(() => toast.remove(), 400);
+
+  // Step 2: collapse height smoothly so siblings slide up without lag
+  setTimeout(() => {
+    toast.style.transition = [
+      'max-height 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
+      'margin-bottom 0.22s ease',
+      'padding-top 0.22s ease',
+      'padding-bottom 0.22s ease'
+    ].join(', ');
+    toast.style.overflow = 'hidden';
+    toast.style.maxHeight = height + 'px';
+    // Force reflow before collapsing
+    void toast.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      toast.style.maxHeight = '0';
+      toast.style.marginBottom = '0';
+      toast.style.paddingTop = '0';
+      toast.style.paddingBottom = '0';
+    });
+    setTimeout(() => toast.remove(), 240);
+  }, 200);
 }
 
 // Semantic shorthand methods

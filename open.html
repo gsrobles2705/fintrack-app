@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#131313">
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <title>FinTrack — Instalar App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -148,8 +153,16 @@
   </div>
   <p class="footer">© 2026 FinTrack · gsrobles2705.github.io/fintrack-app</p>
   <script>
-    const APP_URL = 'https://gsrobles2705.github.io/fintrack-app/';
-    const FORCED_URL = APP_URL + 'index.html?v=' + Date.now() + '&nocache=' + Math.random();
+    // Obtiene la URL base del directorio donde está open.html
+    const currentPath = window.location.pathname;
+    const baseDir = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+    // Construye la URL absoluta a index.html en el mismo directorio
+    const INDEX_URL = window.location.origin + baseDir + 'index.html';
+    const FORCED_URL = INDEX_URL + '?v=' + Date.now() + '&nocache=' + Math.random();
+    
+    // Para compatibilidad con los botones "Copiar link"
+    const APP_URL = window.location.origin + baseDir;
+
     const ua = navigator.userAgent || '';
     const isIOS = /iPhone|iPad|iPod/i.test(ua);
     const isAndroid = /Android/i.test(ua);
@@ -160,7 +173,28 @@
     const isChrome = /Chrome/i.test(ua) && !isSamsung && !/EdgA?/i.test(ua) && !/OPR/i.test(ua) && !isChromeiOS;
 
     function showOnly(id) {
-      ['view-android-guide','view-ios-chrome','view-ios-safari','view-redirect'].forEach(v => document.getElementById(v).style.display = v === id ? (id === 'view-redirect' ? 'flex' : 'block') : 'none');
+      ['view-android-guide','view-ios-chrome','view-ios-safari','view-redirect'].forEach(v => 
+        document.getElementById(v).style.display = v === id ? (id === 'view-redirect' ? 'flex' : 'block') : 'none'
+      );
+    }
+
+    // Limpia Service Worker y cachés antes de redirigir
+    async function clearServiceWorkerAndRedirect(url) {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          await registration.unregister();
+          console.log('Service Worker desregistrado');
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (let key of keys) {
+          await caches.delete(key);
+          console.log('Cache eliminado:', key);
+        }
+      }
+      window.location.replace(url);
     }
 
     if (isOtherIOS) showOnly('view-ios-chrome');
@@ -171,7 +205,7 @@
       }
     } else if (!isAndroid || isChrome) {
       showOnly('view-redirect');
-      setTimeout(() => window.location.replace(FORCED_URL), 600);
+      setTimeout(() => clearServiceWorkerAndRedirect(FORCED_URL), 600);
     } else {
       showOnly('view-android-guide');
     }

@@ -18,5 +18,28 @@
       "sizes": "512x512",
       "type": "image/png"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nuevo Gasto",
+      "short_name": "Gasto",
+      "description": "Registrar un nuevo gasto",
+      "url": "/fintrack-app/?action=gasto",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Nuevo Ingreso",
+      "short_name": "Ingreso",
+      "description": "Registrar un nuevo ingreso",
+      "url": "/fintrack-app/?action=ingreso",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mis Deudas",
+      "short_name": "Deudas",
+      "description": "Ver deudas pendientes",
+      "url": "/fintrack-app/?page=deudas",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }

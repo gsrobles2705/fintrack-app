@@ -199,7 +199,7 @@
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
-  max-height: 240px;
+  max-height: 300px;
   overflow-y: auto;
   padding: 4px 2px;
   margin-bottom: var(--spacing-md);
@@ -848,4 +848,54 @@
 
 .install-note-text .android-highlight {
   color: var(--accent-green);
+}
+
+/* Category color badges */
+.categoria-color-badge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.categoria-btn .categoria-icon-wrap {
+  position: relative;
+  overflow: visible;
+}
+
+/* Asegurar que los colores de categorías se vean bien en modo claro */
+[data-theme="light"] .categoria-icon-wrap {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .categoria-btn.selected.modo-gasto .categoria-icon-wrap {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: #dc2626;
+}
+
+[data-theme="light"] .categoria-btn.selected.modo-ingreso .categoria-icon-wrap {
+  background: rgba(5, 150, 105, 0.1);
+  border-color: #059669;
+}
+
+[data-theme="light"] .cat-manage-icon {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .cat-toggle-switch .toggle-slider {
+  background-color: #cbd5e1;
+}
+
+[data-theme="light"] .cat-toggle-switch input:checked + .toggle-slider {
+  background-color: #059669;
+}
+
+[data-theme="light"] .btn-nueva-cat {
+  background: rgba(5, 150, 105, 0.08);
+  border-color: #059669;
+  color: #059669;
 }

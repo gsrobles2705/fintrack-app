@@ -195,6 +195,11 @@ const Storage = {
   },
   addCustomCategory(type, category) {
     const categories = this.getCategoriesByType(type);
+    // Auto-asignar color si no tiene
+    if (!category.color) {
+      const CATEGORY_COLORS = ['#50C878','#F05454','#FFB03A','#4285F4','#A78BFA','#34C5B1','#FF7F50','#63C5DA','#E91E8C','#8BC34A'];
+      category.color = CATEGORY_COLORS[categories.length % CATEGORY_COLORS.length];
+    }
     categories.push({ ...category, custom: true });
     this.saveCategoriesByType(type, categories);
     let active = this.getActiveCategories(type) || [];

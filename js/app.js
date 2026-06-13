@@ -238,7 +238,7 @@ window.showInstallInstructionsModal = function() {
   modal.id = 'modal-install-guide';
   modal.className = 'modal-overlay';
   modal.style.display = 'flex';
-  
+
   modal.onclick = (e) => {
     if (e.target === modal) {
       closeModal('modal-install-guide', () => modal.remove());
@@ -246,74 +246,92 @@ window.showInstallInstructionsModal = function() {
   };
 
   modal.innerHTML = `
-    <div class="modal-card" style="max-height:85vh; overflow-y:auto">
-      <h3 class="modal-title" style="display:flex;align-items:center;gap:12px">
-        <div style="
-          width:48px;height:48px;border-radius:12px;
-          background:var(--accent-green-dim);
-          border:1px solid var(--accent-green);
-          display:flex;align-items:center;justify-content:center;
-          font-size:24px;flex-shrink:0;"
-        >📲</div>
-        <div>Instalar FinTrack</div>
-      </h3>
-      <p class="modal-subtitle">
-        Añade la app a tu pantalla de inicio y accede al instante, sin navegador.
-      </p>
+    <div class="modal-card" style="max-height:88vh; overflow-y:auto; gap:0; padding-bottom:24px">
 
-      <div style="margin: 8px 0 4px">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-text">
-            Abre FinTrack en <strong>Chrome (Android)</strong> o <strong>Safari (iPhone/iPad)</strong>.
-          </div>
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="
+          width:44px;height:44px;border-radius:12px;flex-shrink:0;
+          background:var(--accent-green-dim);border:1px solid var(--accent-green);
+          display:flex;align-items:center;justify-content:center;font-size:22px;">📲</div>
+        <div>
+          <p style="font-size:18px;font-weight:800;color:var(--text-primary);letter-spacing:-0.3px;line-height:1.2">Instalar FinTrack</p>
+          <p style="font-size:12px;color:var(--text-tertiary);margin-top:2px">Añádela a tu pantalla de inicio</p>
         </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-text">
-            Toca el botón 
-            <span class="pill">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                <polyline points="16 6 12 2 8 6"/>
-                <line x1="12" y1="2" x2="12" y2="15"/>
-              </svg>
+      </div>
+
+      <!-- Pasos en tarjeta interna -->
+      <div style="
+        background:var(--bg-card-2);border:1px solid var(--border-color-2);
+        border-radius:var(--radius-md);padding:16px;margin-bottom:16px;
+        display:flex;flex-direction:column;gap:14px;">
+
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="
+            min-width:26px;height:26px;border-radius:50%;flex-shrink:0;
+            background:var(--accent-green-dim);border:1px solid rgba(80,200,120,.3);
+            display:flex;align-items:center;justify-content:center;
+            font-size:12px;font-weight:800;color:var(--accent-green);">1</div>
+          <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.45;padding-top:3px">
+            Abre FinTrack en <strong style="color:var(--text-primary)">Chrome (Android)</strong> o <strong style="color:var(--text-primary)">Safari (iPhone)</strong>.
+          </p>
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="
+            min-width:26px;height:26px;border-radius:50%;flex-shrink:0;
+            background:var(--accent-green-dim);border:1px solid rgba(80,200,120,.3);
+            display:flex;align-items:center;justify-content:center;
+            font-size:12px;font-weight:800;color:var(--accent-green);">2</div>
+          <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.45;padding-top:3px">
+            Toca
+            <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.08);border-radius:6px;padding:1px 8px;font-size:12px;font-weight:700;color:var(--text-primary);">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
               Compartir
             </span>
-            (iOS) o los <span class="pill">⋮</span> tres puntos (Android).
-          </div>
+            en iOS, o los
+            <span style="display:inline-flex;align-items:center;background:rgba(255,255,255,.08);border-radius:6px;padding:1px 9px;font-size:13px;font-weight:700;color:var(--text-primary);">⋮</span>
+            en Android.
+          </p>
         </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-text">
-            Busca y selecciona <strong>"Añadir a pantalla de inicio"</strong> 
-            (en algunos navegadores puede llamarse <strong>"Instalar app"</strong>).
-          </div>
+
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="
+            min-width:26px;height:26px;border-radius:50%;flex-shrink:0;
+            background:var(--accent-green-dim);border:1px solid rgba(80,200,120,.3);
+            display:flex;align-items:center;justify-content:center;
+            font-size:12px;font-weight:800;color:var(--accent-green);">3</div>
+          <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.45;padding-top:3px">
+            Selecciona <strong style="color:var(--text-primary)">"Añadir a pantalla de inicio"</strong>
+            o <strong style="color:var(--text-primary)">"Instalar app"</strong>.
+          </p>
         </div>
-        <div class="step">
-          <div class="step-num">4</div>
-          <div class="step-text">
-            Confirma el nombre y toca <strong>"Añadir"</strong>. ¡Listo!
-          </div>
+
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="
+            min-width:26px;height:26px;border-radius:50%;flex-shrink:0;
+            background:var(--accent-green-dim);border:1px solid rgba(80,200,120,.3);
+            display:flex;align-items:center;justify-content:center;
+            font-size:12px;font-weight:800;color:var(--accent-green);">4</div>
+          <p style="font-size:13.5px;color:var(--text-secondary);line-height:1.45;padding-top:3px">
+            Confirma el nombre y toca <strong style="color:var(--text-primary)">"Añadir"</strong>. ¡Listo!
+          </p>
         </div>
       </div>
 
-      <div class="install-note">
-        <div class="install-note-content">
-          <div class="install-note-text">
-            <strong>En iPhone:</strong> después de tocar "Compartir", desplázate hacia abajo 
-            y toca "Añadir a pantalla de inicio".<br>
-            <strong class="android-highlight">En Android:</strong> los pasos pueden variar 
-            ligeramente según el navegador, pero la opción suele estar en el menú de tres puntos.
-          </div>
-        </div>
+      <!-- Nota iOS/Android -->
+      <div style="
+        background:rgba(255,176,58,.06);border:1px solid rgba(255,176,58,.2);
+        border-radius:var(--radius-md);padding:12px 14px;margin-bottom:20px;">
+        <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.55">
+          <strong style="color:#FFB03A">iPhone:</strong> tras tocar "Compartir", desplázate abajo y elige "Añadir a pantalla de inicio".<br>
+          <strong style="color:var(--accent-green)">Android:</strong> los pasos varían por navegador; la opción suele estar en el menú <span style="font-weight:700">⋮</span>.
+        </p>
       </div>
 
-      <div style="margin-top: 4px">
-        <button class="btn-primary" onclick="closeModal('modal-install-guide', () => document.getElementById('modal-install-guide')?.remove())">
-          Entendido, cerrar
-        </button>
-      </div>
+      <button class="btn-primary" onclick="closeModal('modal-install-guide', () => document.getElementById('modal-install-guide')?.remove())">
+        Entendido ✓
+      </button>
     </div>
   `;
 

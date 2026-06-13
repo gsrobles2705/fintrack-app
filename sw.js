@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fintrack-v3'; // ← versión incrementada
+const CACHE_NAME = 'fintrack-v4'; // ← versión incrementada
 const ASSETS = [
   '/fintrack-app/',
   '/fintrack-app/index.html',

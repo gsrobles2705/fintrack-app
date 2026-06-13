@@ -193,11 +193,18 @@ function _currentTabIndex() {
   });
 }
 
-// Nueva función para saber si el toque empezó en header o en notificación
+// Nueva función para saber si el toque empezó en header, notificación o toast
 function _isTouchOnHeaderOrToast(target) {
   let el = target;
   while (el && el !== document.body) {
-    if (el.classList && (el.classList.contains('header') || el.classList.contains('subscreen-header') || el.classList.contains('toast') || el.classList.contains('notif-card'))) {
+    if (el.classList && (
+      el.classList.contains('header') ||
+      el.classList.contains('subscreen-header') ||
+      el.classList.contains('toast') ||
+      el.classList.contains('notif-card') ||
+      el.id === 'toast-container' ||
+      el.classList.contains('modal-overlay')
+    )) {
       return true;
     }
     el = el.parentElement;

@@ -43,6 +43,9 @@ function renderDeudas() {
   paidSection.style.display = paid.length > 0 ? 'block' : 'none';
   document.getElementById('deudas-pagadas-container').innerHTML =
     paid.map(d => renderDebtCard(d, symbol, true)).join('');
+
+  // Attach swipe-to-pay on active cards
+  setTimeout(() => _attachDebtSwipe(), 50);
 }
 
 function renderDebtCard(debt, currency, isPaid) {
@@ -211,6 +214,12 @@ function payDebt(id) {
   document.getElementById('modal-pago-texto').textContent =
     `¿Marcar la deuda con ${debt.person} (${user.symbol}${debt.amount.toFixed(2)}) como ${verb === 'cobrar' ? 'cobrada' : 'pagada'}?`;
 
+  // Cambiar el texto del botón según el tipo
+  const confirmBtn = document.querySelector('#modal-confirmar-pago .btn-primary');
+  if (confirmBtn) {
+    confirmBtn.textContent = debt.tipo === 'por_cobrar' ? 'Sí, ya cobré' : 'Sí, ya pagué';
+  }
+
   const modal = document.getElementById('modal-confirmar-pago');
   modal.style.display = 'flex';
   modal.onclick = (e) => { if (e.target === modal) closePayModal(); };
@@ -238,30 +247,35 @@ function confirmPayment() {
     transactionId: transaction.id
   });
   closePayModal();
-  renderDeudas();
+  Toast.success('Deuda liquidada', '¡Has cumplido con tu compromiso! 🎉');
+  if (window.Haptics) Haptics.payment(); else if (navigator.vibrate) navigator.vibrate(50);
 
-  // Celebración: destello verde y elevación
+  // Celebración: brillo verde → elevación → fade → luego mover a pagadas
   setTimeout(() => {
     const debtCard = document.querySelector(`.deuda-card[data-id="${payingDebtId}"]`);
     if (debtCard) {
-      debtCard.style.transition = 'box-shadow 0.2s, border-color 0.2s, transform 0.2s';
-      debtCard.style.boxShadow = '0 0 0 2px var(--accent-green), 0 0 0 4px rgba(80,200,120,0.3)';
+      // Fase 1: glow + lift
+      debtCard.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1)';
+      debtCard.style.boxShadow = '0 0 0 2px var(--accent-green), 0 0 24px rgba(80,200,120,0.5)';
       debtCard.style.borderColor = 'var(--accent-green)';
-      debtCard.style.transform = 'translateY(-2px)';
+      debtCard.style.transform = 'translateY(-4px) scale(1.015)';
+
+      // Fase 2: bajar suave
       setTimeout(() => {
-        debtCard.style.boxShadow = '';
-        debtCard.style.borderColor = '';
-        debtCard.style.transform = '';
-        // Recargar para mover la tarjeta a pagadas
-        renderDeudas();
-      }, 500);
+        debtCard.style.transition = 'box-shadow 0.35s ease, transform 0.35s ease, opacity 0.3s ease';
+        debtCard.style.transform = 'translateY(0) scale(1)';
+        debtCard.style.boxShadow = '0 0 8px rgba(80,200,120,0.2)';
+
+        // Fase 3: fade out y re-render
+        setTimeout(() => {
+          debtCard.style.opacity = '0';
+          setTimeout(() => renderDeudas(), 320);
+        }, 350);
+      }, 650);
     } else {
       renderDeudas();
     }
-  }, 50);
-
-  Toast.success('Deuda liquidada', '¡Has cumplido con tu compromiso! 🎉');
-  vibrate(50);
+  }, 60);
 }
 
 function closePayModal() {
@@ -457,6 +471,65 @@ function guardarDeuda() {
     renderDeudas();
     Toast.success('Deuda registrada', 'Se actualizó tu saldo.');
   }
+}
+
+function _attachDebtSwipe() {
+  const SWIPE_THRESHOLD = 80;
+  document.querySelectorAll('.deuda-card:not(.pagada):not([data-swipe])').forEach(card => {
+    card.setAttribute('data-swipe', '1');
+    let startX = 0, startY = 0, dragging = false;
+
+    card.style.position = 'relative';
+    card.style.overflow = 'hidden';
+
+    card.addEventListener('touchstart', e => {
+      e.stopPropagation();
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      dragging = false;
+      card.style.transition = 'none';
+    }, { passive: false });
+
+    card.addEventListener('touchmove', e => {
+      e.stopPropagation();
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+        e.preventDefault();
+        dragging = true;
+        const clamped = Math.min(Math.max(dx, -SWIPE_THRESHOLD * 1.5), SWIPE_THRESHOLD * 1.5);
+        card.style.transform = `translateX(${clamped}px)`;
+        if (dx > 30) {
+          card.style.boxShadow = `0 0 0 2px var(--accent-green), inset 0 0 40px rgba(80,200,120,0.08)`;
+        } else {
+          card.style.boxShadow = '';
+        }
+      }
+    }, { passive: false });
+
+    card.addEventListener('touchend', e => {
+      if (!dragging) return;
+      e.stopPropagation();
+      const dx = e.changedTouches[0].clientX - startX;
+      card.style.transition = 'transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1), box-shadow 0.2s';
+      card.style.transform = '';
+      card.style.boxShadow = '';
+
+      if (Math.abs(dx) > SWIPE_THRESHOLD) {
+        const id = card.dataset.id;
+        if (!id) return;
+        if (dx > SWIPE_THRESHOLD) {
+          // Derecha → pagar
+          if (window.Haptics) Haptics.medium(); else if (navigator.vibrate) navigator.vibrate(50);
+          payDebt(id);
+        } else if (dx < -SWIPE_THRESHOLD) {
+          // Izquierda → opciones (editar)
+          if (window.Haptics) Haptics.light(); else if (navigator.vibrate) navigator.vibrate(30);
+          showDebtOptions(id);
+        }
+      }
+    });
+  });
 }
 
 (function injectDebtStyles() {

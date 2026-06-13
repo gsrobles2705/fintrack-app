@@ -1,26 +1,25 @@
 // home.js - Pantalla principal con todas las mejoras v1.2.0
 
-// Flag para efecto de tipeo (solo una vez)
-let typingDone = false;
+// Flag para sesión (se reinicia al cerrar la pestaña)
+let typingAnimationDone = false;
 
 function renderHome() {
   const user = Storage.getUser();
   const transactions = Storage.getTransactions();
   const goal = Storage.getGoal();
 
-  const greeting = getGreeting();
+  const greeting = getGreeting(user.name); // Ahora recibe el nombre y retorna frase completa
   const greetingNameEl = document.getElementById('home-greeting-name');
-  
-  // Efecto de tipeo solo una vez en la vida de la app
-  if (!typingDone && !localStorage.getItem('fintrack_typing_done')) {
-    const fullName = `${greeting}, ${user.name}`;
-    typeWriter(greetingNameEl, fullName, 30);
-    localStorage.setItem('fintrack_typing_done', '1');
-    typingDone = true;
+
+  // Animación de máquina de escribir cada vez que se abre la app (nueva pestaña/ventana)
+  const sessionKey = 'fintrack_typing_done_session';
+  if (!sessionStorage.getItem(sessionKey)) {
+    typeWriter(greetingNameEl, greeting);
+    sessionStorage.setItem(sessionKey, '1');
   } else {
-    greetingNameEl.textContent = `${greeting}, ${user.name}`;
+    greetingNameEl.textContent = greeting;
   }
-  
+
   document.getElementById('home-avatar-inicial').textContent = user.name.charAt(0).toUpperCase();
 
   const currentBalance = calculateCurrentBalance(transactions);
@@ -38,7 +37,45 @@ function renderHome() {
   renderBudget();
   renderStreak();
   renderGrowthIndicator();
+  renderMonthSummary(transactions, currency);
   checkAndRenderInvictoDay();
+}
+
+/**
+ * Nuevo saludo formal sin emojis, con el nombre al final.
+ * @param {string} name - Nombre del usuario.
+ * @returns {string} Frase completa (ej. "Buenos días, Gabriel.")
+ */
+function getGreeting(name) {
+  const hour = new Date().getHours();
+  let base = '';
+  if (hour < 12) {
+    const options = [
+      'Buenos días',
+      'Qué tenga un excelente día',
+      'Iniciando con buen pie',
+      'Un nuevo amanecer financiero'
+    ];
+    base = options[Math.floor(Math.random() * options.length)];
+  } else if (hour < 18) {
+    const options = [
+      'Buenas tardes',
+      'Siga avanzando',
+      'La tarde es suya',
+      'Sigamos con orden'
+    ];
+    base = options[Math.floor(Math.random() * options.length)];
+  } else {
+    const options = [
+      'Buenas noches',
+      'Termine el día en paz',
+      'Balance nocturno',
+      'Descanse y repase sus finanzas'
+    ];
+    base = options[Math.floor(Math.random() * options.length)];
+  }
+  // Aseguramos mayúscula inicial y punto final
+  return `${base.charAt(0).toUpperCase() + base.slice(1)}, ${name}.`;
 }
 
 // Efecto de tipeo rápido (no bloqueante)
@@ -70,48 +107,99 @@ function animateNumber(element, start, end, duration = 500) {
   requestAnimationFrame(update);
 }
 
-// Indicador de crecimiento mensual (solo si hay datos del mes anterior)
+// Indicador de crecimiento mensual (o semanal si lleva menos de 1 semana)
 function renderGrowthIndicator() {
   const transactions = Storage.getTransactions();
-  const now = new Date();
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-  
-  const currentBalance = calculateCurrentBalance(transactions);
-  const balanceLastMonth = transactions
-    .filter(t => new Date(t.date) >= lastMonthStart && new Date(t.date) <= lastMonthEnd)
-    .reduce((sum, t) => t.type === 'ingreso' ? sum + t.amount : sum - t.amount, 0);
-  
-  let percent = 0, direction = 'same';
-  if (balanceLastMonth !== 0) {
-    const change = ((currentBalance - balanceLastMonth) / Math.abs(balanceLastMonth)) * 100;
-    percent = Math.abs(change).toFixed(1);
-    direction = change >= 0 ? 'up' : 'down';
-  } else {
-    // No hay datos del mes anterior, no mostrar indicador
-    const existing = document.querySelector('.growth-indicator');
+  if (transactions.length === 0) {
+    const existing = document.querySelector('#screen-home .card:first-child .growth-indicator');
     if (existing) existing.remove();
     return;
   }
-  
+
+  const now = new Date();
+  const currentBalance = calculateCurrentBalance(transactions);
+  const user = Storage.getUser();
+  const symbol = user.symbol;
+
+  // Determinar si el usuario tiene menos de 7 días en la app
+  const firstTx = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+  const daysSinceFirst = firstTx ? Math.floor((now - new Date(firstTx.date)) / 86400000) : 0;
+
+  let prevBalance = 0;
+  let label = '';
+
+  if (daysSinceFirst < 7) {
+    // Menos de 1 semana: no hay período anterior comparable, no mostrar
+    const existing = document.querySelector('#screen-home .card:first-child .growth-indicator');
+    if (existing) existing.remove();
+    return;
+  } else if (daysSinceFirst < 31) {
+    // Entre 1 semana y 1 mes: comparar semana actual vs semana anterior
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - (now.getDay() || 7) + 1);
+    weekStart.setHours(0, 0, 0, 0);
+    const prevWeekStart = new Date(weekStart);
+    prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+    const prevWeekEnd = new Date(weekStart);
+    prevWeekEnd.setMilliseconds(-1);
+
+    prevBalance = transactions
+      .filter(t => {
+        const d = new Date(t.date);
+        return d >= prevWeekStart && d <= prevWeekEnd;
+      })
+      .reduce((sum, t) => t.type === 'ingreso' ? sum + t.amount : sum - t.amount, 0);
+    label = 'vs sem. anterior';
+  } else {
+    // Más de 1 mes: comparar con saldo del mes anterior
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+    prevBalance = transactions
+      .filter(t => {
+        const d = new Date(t.date);
+        return d >= lastMonthStart && d <= lastMonthEnd;
+      })
+      .reduce((sum, t) => t.type === 'ingreso' ? sum + t.amount : sum - t.amount, 0);
+    label = 'vs mes anterior';
+  }
+
+  if (prevBalance === 0 && currentBalance === 0) {
+    const existing = document.querySelector('#screen-home .card:first-child .growth-indicator');
+    if (existing) existing.remove();
+    return;
+  }
+
+  let percent = 0, direction = 'same';
+  if (prevBalance !== 0) {
+    const change = ((currentBalance - prevBalance) / Math.abs(prevBalance)) * 100;
+    percent = Math.abs(change).toFixed(1);
+    direction = change > 0 ? 'up' : change < 0 ? 'down' : 'same';
+  } else if (currentBalance > 0) {
+    direction = 'up';
+    percent = '100';
+  }
+
+  const arrow = direction === 'up' ? '▲' : direction === 'down' ? '▼' : '•';
+  const sign = direction === 'up' ? '+' : direction === 'down' ? '-' : '';
+  const color = direction === 'up' ? 'var(--accent-green)' : direction === 'down' ? 'var(--accent-red)' : 'var(--text-tertiary)';
+
   const growthHtml = `
-    <div class="growth-indicator ${direction}" onclick="showGrowthModal('${direction}', '${percent}', '${currentBalance.toFixed(2)}', '${balanceLastMonth.toFixed(2)}')" style="cursor:pointer">
-      <span class="growth-value ${direction}">
-        ${direction === 'up' ? '▲' : direction === 'down' ? '▼' : '•'} ${direction === 'up' ? '+' : ''}${percent}%
-      </span>
-      <span class="growth-label">vs mes anterior</span>
+    <div class="growth-indicator" onclick="showGrowthModal('${direction}', '${percent}', '${currentBalance.toFixed(2)}', '${prevBalance.toFixed(2)}', '${label}')" style="cursor:pointer;display:flex;align-items:baseline;gap:6px;margin-top:8px;font-size:13px;">
+      <span style="color:${color};font-weight:700;font-size:12px">${arrow} ${sign}${percent}%</span>
+      <span style="color:var(--text-tertiary)">${label}</span>
     </div>
   `;
+
   const balanceCard = document.querySelector('#screen-home .card:first-child');
-  if (balanceCard && !balanceCard.querySelector('.growth-indicator')) {
-    balanceCard.insertAdjacentHTML('beforeend', growthHtml);
-  } else if (balanceCard) {
-    const old = balanceCard.querySelector('.growth-indicator');
-    if (old) old.outerHTML = growthHtml;
-  }
+  if (!balanceCard) return;
+  const old = balanceCard.querySelector('.growth-indicator');
+  if (old) old.outerHTML = growthHtml;
+  else balanceCard.insertAdjacentHTML('beforeend', growthHtml);
 }
 
-function showGrowthModal(direction, percent, current, previous) {
+function showGrowthModal(direction, percent, current, previous, label) {
+  label = label || 'vs período anterior';
   const modalId = 'modal-growth-' + Date.now();
   const overlay = document.createElement('div');
   overlay.id = modalId;
@@ -126,7 +214,7 @@ function showGrowthModal(direction, percent, current, previous) {
       </p>
       <div style="background:var(--bg-card-2);border-radius:var(--radius-md);padding:12px;margin:12px 0">
         <p>Saldo actual: <strong>${getCurrencySymbol()}${current}</strong></p>
-        <p>Saldo mes anterior: <strong>${getCurrencySymbol()}${previous}</strong></p>
+        <p>Saldo ${label}: <strong>${getCurrencySymbol()}${previous}</strong></p>
       </div>
       <button class="btn-primary" onclick="closeModal('${modalId}', () => document.getElementById('${modalId}')?.remove())">Entendido</button>
     </div>
@@ -272,12 +360,11 @@ function showStreakModal() {
 }
 window.showStreakModal = showStreakModal;
 
-// Objetivo Semanal con celebración al 100% (selector mejorado)
+// Objetivo Semanal con celebración al 100% (semáforo de colores)
 function renderGoal(goal, weeklyBalance, currency) {
-  // Obtener la tarjeta del objetivo de forma robusta
   const amountsSpan = document.getElementById('home-goal-amounts');
   const goalCard = amountsSpan ? amountsSpan.closest('.card') : null;
-  
+
   if (!goal) {
     if (amountsSpan) amountsSpan.textContent = 'S/0 / S/0';
     const progressFill = document.getElementById('home-progress-bar');
@@ -285,22 +372,38 @@ function renderGoal(goal, weeklyBalance, currency) {
     if (goalCard) goalCard.classList.remove('goal-completed');
     return;
   }
+
   const saved = Math.max(weeklyBalance, 0);
   const percent = Math.min((saved / goal.amount) * 100, 100);
   const progressFill = document.getElementById('home-progress-bar');
-  
+
   if (percent >= 100) {
-    // Celebración: barra esmeralda, glow en la tarjeta, y check en lugar del texto
-    progressFill.style.background = '#00FFAA';
-    progressFill.style.boxShadow = '0 0 12px #00FFAA';
+    // ✅ Meta cumplida: esmeralda intenso + glow card + check
+    progressFill.style.background = 'linear-gradient(90deg, #00FFAA, #00E5CC)';
+    progressFill.style.boxShadow = '0 0 16px rgba(0,255,170,0.6)';
     if (goalCard) goalCard.classList.add('goal-completed');
-    if (amountsSpan) amountsSpan.innerHTML = `<span class="goal-check">✓</span>`;
+    if (amountsSpan) {
+      amountsSpan.innerHTML = `${currency}${saved.toFixed(0)} / ${currency}${goal.amount} <span class="goal-check">✓</span>`;
+    }
   } else {
-    progressFill.style.background = percent < 51 ? 'var(--accent-green)' : (percent < 81 ? '#FFB03A' : 'var(--accent-red)');
-    progressFill.style.boxShadow = '';
+    // Semáforo: verde (0-49%) → ámbar (50-79%) → rojo (80-99%)
+    let barColor, barGlow;
+    if (percent < 50) {
+      barColor = 'var(--accent-green)';
+      barGlow = 'rgba(80, 200, 120, 0.5)';
+    } else if (percent < 80) {
+      barColor = '#FFB03A';
+      barGlow = 'rgba(255, 176, 58, 0.5)';
+    } else {
+      barColor = 'var(--accent-red)';
+      barGlow = 'rgba(240, 84, 84, 0.5)';
+    }
+    progressFill.style.background = barColor;
+    progressFill.style.boxShadow = `0 0 8px ${barGlow}`;
     if (goalCard) goalCard.classList.remove('goal-completed');
     if (amountsSpan) amountsSpan.textContent = `${currency}${saved.toFixed(0)} / ${currency}${goal.amount}`;
   }
+
   progressFill.style.width = `${percent}%`;
   checkWeeklyGoal(goal, saved);
 }
@@ -452,12 +555,6 @@ function guardarPresupuesto() {
 }
 
 // Utilidades
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Buenos días';
-  if (hour < 18) return 'Buenas tardes';
-  return 'Buenas noches';
-}
 function calculateCurrentBalance(transactions) {
   return transactions.reduce((total, t) => t.type === 'ingreso' ? total + t.amount : total - t.amount, 0);
 }
@@ -490,6 +587,51 @@ function formatDate(dateStr) {
 }
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function renderMonthSummary(transactions, currency) {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthName = now.toLocaleDateString('es-PE', { month: 'long' });
+
+  const monthTx = transactions.filter(t => new Date(t.date) >= monthStart);
+  const gastos   = monthTx.filter(t => t.type === 'gasto').reduce((s, t) => s + t.amount, 0);
+  const ingresos = monthTx.filter(t => t.type === 'ingreso').reduce((s, t) => s + t.amount, 0);
+  const diff = ingresos - gastos;
+
+  const balanceEl = document.querySelector('#screen-home .card:first-child');
+  if (!balanceEl) return;
+
+  let summaryEl = document.getElementById('month-summary-block');
+  if (!summaryEl) {
+    summaryEl = document.createElement('div');
+    summaryEl.id = 'month-summary-block';
+    summaryEl.className = 'month-summary-block';
+    balanceEl.appendChild(summaryEl);
+  }
+
+  const diffColor = diff >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+  const diffSign  = diff >= 0 ? '+' : '';
+
+  summaryEl.innerHTML = `
+    <div class="month-summary-label">${monthName.toUpperCase()}</div>
+    <div class="month-summary-row">
+      <div class="month-summary-item">
+        <span class="month-summary-type gasto">↓ Gastos</span>
+        <span class="month-summary-amount gasto">${currency}${gastos.toFixed(2)}</span>
+      </div>
+      <div class="month-summary-divider"></div>
+      <div class="month-summary-item">
+        <span class="month-summary-type ingreso">↑ Ingresos</span>
+        <span class="month-summary-amount ingreso">${currency}${ingresos.toFixed(2)}</span>
+      </div>
+      <div class="month-summary-divider"></div>
+      <div class="month-summary-item">
+        <span class="month-summary-type" style="color:var(--text-tertiary)">Balance</span>
+        <span class="month-summary-amount" style="color:${diffColor}">${diffSign}${currency}${Math.abs(diff).toFixed(2)}</span>
+      </div>
+    </div>
+  `;
 }
 
 const calcularSaldoActual = calculateCurrentBalance;

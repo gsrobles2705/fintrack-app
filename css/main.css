@@ -36,7 +36,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Desactiva el pull-to-refresh nativo del browser */
 html {
   overscroll-behavior-y: none;
   height: 100%;
@@ -44,8 +43,6 @@ html {
 body {
   overscroll-behavior-y: none;
   height: 100%;
-  /* overflow:hidden removido de body — rompía el scroll con mouse en desktop.
-     Ahora el overflow se contiene en .screen */
 }
 
 body {
@@ -65,20 +62,18 @@ body {
   height: 100vh;
   flex-direction: column;
   position: relative;
-  overflow: hidden;   /* contenedor del scroll, antes estaba en body */
+  overflow: hidden;
 }
 
 .screen.active {
   display: flex;
 }
 
-/* Selects */
 select {
   appearance: none;
   -webkit-appearance: none;
 }
 
-/* Scrollbar invisible */
 ::-webkit-scrollbar {
   display: none;
 }
@@ -90,4 +85,139 @@ select {
 
 .nav-item.active .nav-icon svg {
   stroke: var(--accent-green);
+}
+
+/* ========== LIGHT THEME ========== */
+[data-theme="light"] {
+  --bg-primary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-2: #f8fafc;
+  --bg-card-high: #e2e8f0;
+  --border-color: #cbd5e1;
+  --border-color-2: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --accent-green: #059669;
+  --accent-green-dim: rgba(5, 150, 105, 0.09);
+  --accent-green-glow: rgba(5, 150, 105, 0.18);
+  --accent-red: #dc2626;
+  --accent-red-dim: rgba(220, 38, 38, 0.09);
+}
+
+[data-theme="light"] .card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04);
+}
+
+[data-theme="light"] .modal-card {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 32px rgba(15,23,42,0.10);
+}
+
+[data-theme="light"] .toast {
+  background: rgba(255,255,255,0.97);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15,23,42,0.12), 0 1px 4px rgba(15,23,42,0.08);
+}
+
+[data-theme="light"] .toast-title  { color: #0f172a; }
+[data-theme="light"] .toast-msg    { color: #475569; }
+
+[data-theme="light"] .header,
+[data-theme="light"] .subscreen-header {
+  background: rgba(248,250,252,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom-color: #e2e8f0;
+}
+
+[data-theme="light"] .bottom-nav {
+  background: rgba(255,255,255,0.96);
+  border-top-color: #e2e8f0;
+  box-shadow: 0 -1px 0 #e2e8f0;
+}
+
+[data-theme="light"] .btn-primary {
+  background: #059669;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(5,150,105,0.25);
+}
+
+[data-theme="light"] .btn-primary:active { background: #047857; }
+
+[data-theme="light"] .input-field {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .input-field:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5,150,105,0.14);
+}
+
+[data-theme="light"] .input-field::placeholder { color: #94a3b8; }
+
+[data-theme="light"] .toggle-btn.active.gasto   { background: #dc2626; color: #fff; }
+[data-theme="light"] .toggle-btn.active.ingreso { background: #059669; color: #fff; }
+
+[data-theme="light"] .transaction-icon {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .deuda-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 4px rgba(15,23,42,0.05);
+}
+
+[data-theme="light"] .perfil-avatar { background: #059669; color: #ffffff; }
+[data-theme="light"] .header-avatar  { background: #059669; color: #ffffff; }
+
+[data-theme="light"] .combo-dropdown {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+}
+
+[data-theme="light"] .combo-option        { border-bottom-color: #f1f5f9; }
+[data-theme="light"] .combo-option:hover  { background: #f8fafc; }
+[data-theme="light"] .combo-option.selected { background: rgba(5,150,105,0.07); }
+
+[data-theme="light"] .filter-dropdown-btn  { background: #ffffff; border-color: #cbd5e1; }
+[data-theme="light"] .filter-dropdown-menu { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 8px 24px rgba(15,23,42,0.12); }
+[data-theme="light"] .filter-dropdown-item { color: #475569; border-bottom-color: #f1f5f9; }
+[data-theme="light"] .filter-dropdown-item.active { background: rgba(5,150,105,0.07); color: #059669; }
+
+[data-theme="light"] .progress-bar-fill {
+  background: linear-gradient(90deg, #059669, #10b981);
+  box-shadow: 0 0 6px rgba(5,150,105,0.35);
+}
+
+[data-theme="light"] .view-toggle-btn { background: #ffffff; border-color: #cbd5e1; }
+[data-theme="light"] .view-toggle-btn svg { stroke: #64748b; }
+[data-theme="light"] .view-toggle-btn.active { background: rgba(5,150,105,0.09); border-color: #059669; }
+[data-theme="light"] .view-toggle-btn.active svg { stroke: #059669; }
+
+[data-theme="light"] .chart-summary-card { background: #ffffff; border-color: #e2e8f0; }
+[data-theme="light"] .chart-legend-section,
+[data-theme="light"] .chart-bars-section  { background: #ffffff; border-color: #e2e8f0; }
+
+[data-theme="light"] .streak-badge {
+  background: linear-gradient(135deg,rgba(220,38,38,.08) 0%,rgba(245,158,11,.08) 100%);
+  border-color: rgba(245,158,11,.3);
+}
+
+[data-theme="light"] .cat-manage-icon  { background: #f1f5f9; border-color: #e2e8f0; }
+[data-theme="light"] .icon-picker-btn  { background: #f8fafc; border-color: #e2e8f0; }
+[data-theme="light"] .icon-picker-btn svg { stroke: #475569; }
+
+[data-theme="light"] .presupuesto-info { background: #ffffff; border-color: #e2e8f0; }
+[data-theme="light"] body::before,
+[data-theme="light"] body::after {
+  background: radial-gradient(ellipse at center, rgba(5,150,105,0.07) 0%, transparent 70%);
+  opacity: 0.5;
 }
